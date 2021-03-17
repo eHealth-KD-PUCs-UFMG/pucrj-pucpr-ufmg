@@ -5,10 +5,11 @@ from transformers import DistilBertModel, DistilBertConfig
 import torch
 import torch.nn as nn
 
-class Vicomtech:
+class Vicomtech(nn.Module):
     def __init__(self, beto_path='dccuchile/bert-base-spanish-wwm-cased', 
                        hdim=768, edim=5, rdim=13,
                        distilbert_nlayers=2, distilbert_nheads=2):
+        super(Vicomtech, self).__init__()
         self.hdim = hdim
         self.edim = edim
         self.rdim = rdim
