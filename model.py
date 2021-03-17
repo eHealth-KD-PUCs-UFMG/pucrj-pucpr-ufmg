@@ -5,6 +5,27 @@ from transformers import DistilBertModel, DistilBertConfig
 import torch
 import torch.nn as nn
 
+def mish(x):
+    return (x * torch.tanh(F.softplus(x)))
+
+class Classifier(nn.Module):
+    def __init__(self, input_dim, output_dim):
+        super(Classifier, self).__init__()
+
+        self.linear1 = nn.Linear(input_dim, input_dim)
+        self.dropout = nn.Dropout(p=0.2)
+        self.act = mish
+        self.linear2 = nn.Linear(input_dim, output_dim)
+        self.softmax = nn.Softmax(2)
+
+    def forward(self, x):
+        x = self.linear1(x)
+        x = self.dropout(x)
+        x = self.act(x)
+        x = self.linear2(x)
+        return self.softmax(x)
+        
+
 class Vicomtech(nn.Module):
     def __init__(self, beto_path='dccuchile/bert-base-spanish-wwm-cased', 
                        hdim=768, edim=5, rdim=13,
@@ -25,20 +46,15 @@ class Vicomtech(nn.Module):
         self.distilbert = DistilBertModel(configuration)
 
         # linear projections
-        self.entity_layer = nn.Linear(hdim, edim)
-        self.entity_softmax = nn.Softmax(2)
+        self.entity_classifier = Classifier(hdim, edim)
 
-        self.multiword_layer = nn.Linear(hdim, 2)
-        self.multiword_softmax = nn.Softmax(2)
+        self.multiword_classifier = Classifier(hdim, 2)
 
-        self.sameas_layer = nn.Linear(hdim, 2)
-        self.sameas_softmax = nn.Softmax(2)
+        self.sameas_classifier = Classifier(hdim, 2)
 
-        self.related_layer = nn.Linear(hdim, 2)
-        self.related_softmax = nn.Softmax(2)
+        self.related_classifier = Classifier(hdim, 2)
 
-        self.relation_type_layer = nn.Linear(hdim+2, 2)
-        self.relation_type_softmax = nn.Softmax(2)
+        self.relation_type_classifier = Classifier(hdim+2, 2)
 
     def forward(self, texts):
         # part 1
@@ -66,16 +82,16 @@ class Vicomtech(nn.Module):
         ssd = self.distilbert(inputs_embeds=inp_distilbert)['last_hidden_state']
 
         # part 5
-        multiword = self.multiword_softmax(self.multiword_layer(ssd))
+        multiword = self.multiword_classifier(ssd)
         # part 6
-        sameas = self.sameas_softmax(self.sameas_layer(ssd))
+        sameas = self.sameas_classifier(ssd)
         # part 7
-        related = self.related_softmax(self.related_layer(ssd))
+        related = self.related_classifier(ssd)
 
         # part 8
         incoming_outgoing = torch.cat([ssd, related], 2)
         # part 9
-        related_type = self.relation_type_softmax(self.relation_type_layer(incoming_outgoing))
+        related_type = self.relation_type_classifier(incoming_outgoing)
 
         return entity, multiword, sameas, related, related_type
 
