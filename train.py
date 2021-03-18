@@ -105,13 +105,13 @@ class Train:
                     related_type_probs):
         # entity loss
         batch, seq_len, dim = entity_probs.size()
-        entity_real = torch.nn.utils.rnn.pad_sequence(batch_entity).transpose(0, 1)
+        entity_real = torch.nn.utils.rnn.pad_sequence(batch_entity).transpose(0, 1).to(self.device)
         entity_loss = self.criterion(entity_probs.view(batch*seq_len, dim), entity_real.reshape(-1))
 
         # multiword loss
         batch, seq_len, dim = multiword_probs.size()
         rowcol_len = int(np.sqrt(seq_len))
-        multiword_real = torch.zeros((batch, rowcol_len, rowcol_len)).long()
+        multiword_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
         for i in range(batch):
             rows, columns = batch_multiword[i][:, 0], batch_multiword[i][:, 1]
             multiword_real[i, rows, columns] = 1
@@ -121,7 +121,7 @@ class Train:
         # sameas loss
         batch, seq_len, dim = sameas_probs.size()
         rowcol_len = int(np.sqrt(seq_len))
-        sameas_real = torch.zeros((batch, rowcol_len, rowcol_len)).long()
+        sameas_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
         for i in range(batch):
             try:
                 rows, columns = batch_sameas[i][:, 0], batch_sameas[i][:, 1]
@@ -134,21 +134,27 @@ class Train:
         # relation loss
         batch, seq_len, dim = related_probs.size()
         rowcol_len = int(np.sqrt(seq_len))
-        relation_real = torch.zeros((batch, rowcol_len, rowcol_len)).long()
+        relation_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
         for i in range(batch):
-            rows, columns = batch_relation[i][:, 0], batch_relation[i][:, 1]
-            relation_real[i, rows, columns] = 1
+            try:
+                rows, columns = batch_relation[i][:, 0], batch_relation[i][:, 1]
+                relation_real[i, rows, columns] = 1
+            except:
+                pass
 
         relation_loss = self.criterion(related_probs.view(batch*seq_len, dim), relation_real.view(-1))
 
         # relation type loss
         batch, seq_len, dim = related_type_probs.size()
         rowcol_len = int(np.sqrt(seq_len))
-        relation_real = torch.zeros((batch, rowcol_len, rowcol_len)).long()
+        relation_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
         for i in range(batch):
-            rows, columns = batch_relation[i][:, 0], batch_relation[i][:, 1]
-            labels = batch_relation[i][:, 2]
-            relation_real[i, rows, columns] = labels
+            try:
+                rows, columns = batch_relation[i][:, 0], batch_relation[i][:, 1]
+                labels = batch_relation[i][:, 2]
+                relation_real[i, rows, columns] = labels
+            except:
+                pass
 
         relation_type_loss = self.criterion(related_type_probs.view(batch*seq_len, dim), relation_real.view(-1))
 
@@ -190,7 +196,7 @@ class Train:
 
                     # Backpropagation
                     loss.backward()
-                    optimizer.step()
+                    self.optimizer.step()
 
                     batch_X, batch_entity, batch_multiword, batch_sameas, batch_relation = [], [], [], [], []
 

@@ -55,6 +55,7 @@ class Vicomtech(nn.Module):
         self.hdim = hdim
         self.edim = edim
         self.rdim = rdim
+        self.device = device
         
         # BETO
         self.tokenizer = AutoTokenizer.from_pretrained(beto_path, do_lower_case=False)
@@ -79,7 +80,7 @@ class Vicomtech(nn.Module):
 
     def forward(self, texts):
         # part 1
-        tokens = self.tokenizer(texts, padding=True, return_tensors="pt")
+        tokens = self.tokenizer(texts, padding=True, return_tensors="pt").to(self.device)
         embeddings = self.beto(**tokens)['last_hidden_state']
 
         # part 2
@@ -90,7 +91,7 @@ class Vicomtech(nn.Module):
 
         # part 3 (TRY TO IMPROVE VECTORIZATION)
         batch, seq_len, dim = embeddings_entity.size()
-        embent_embent = torch.zeros(batch, seq_len**2, 2*dim)
+        embent_embent = torch.zeros(batch, seq_len**2, 2*dim).to(self.device)
 
         for i in range(seq_len):
             m1 = torch.cat(seq_len * [embeddings_entity[:, i, :].unsqueeze(1)], 1)
