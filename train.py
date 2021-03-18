@@ -32,7 +32,7 @@ relation_w2id = { w:i for i, w in enumerate(RELATIONS) }
 relation_id2w = { i:w for i, w in enumerate(RELATIONS) }
 
 class Train:
-    def __init__(model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16, early_stop=5, device='cuda'):
+    def __init__(self, model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16, early_stop=5, device='cuda'):
         self.epochs = epochs
         self.batch_size = batch_size
         self.batch_status = batch_status
@@ -40,7 +40,7 @@ class Train:
         self.device = device
 
         self.traindata = traindata
-        self.devdata = self.devdata
+        self.devdata = devdata
 
         self.model = model
         self.criterion = criterion
@@ -195,7 +195,7 @@ class Train:
                     batch_X, batch_entity, batch_multiword, batch_sameas, batch_relation = [], [], [], [], []
 
                 # Display
-                if (batch_idx+1) % batch_status == 0:
+                if (batch_idx+1) % self.batch_status == 0:
                     print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTotal Loss: {:.6f}'.format(
                     epoch, batch_idx+1, len(self.train_X),
                     100. * batch_idx / len(self.train_X), float(loss), round(sum(losses) / len(losses), 5)))

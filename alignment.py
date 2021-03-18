@@ -3,8 +3,9 @@ from data.scripts.anntools import Collection
 from pathlib import Path
 from random import shuffle
 import json
+import os
 
-def extract_keyphrases(keyphrases, tokens):
+def extract_keyphrases(keyphrases, text, tokens):
     tags = {}
     for keyphrase in sorted(keyphrases, key=lambda x: len(x.text)):
         ktext = keyphrase.text
@@ -62,7 +63,7 @@ def run():
         text = instance.text
         tokens = tokenizer.convert_ids_to_tokens(tokenizer(text)['input_ids'])
 
-        keyphrases = extract_keyphrases(instance.keyphrases, tokens)
+        keyphrases = extract_keyphrases(instance.keyphrases, text, tokens)
 
         relations = []
         for relation in instance.relations:
