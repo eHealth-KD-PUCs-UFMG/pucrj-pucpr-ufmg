@@ -5,8 +5,28 @@ from transformers import DistilBertModel, DistilBertConfig
 import torch
 import torch.nn as nn
 
-def mish(x):
-    return (x * torch.tanh(F.softplus(x)))
+ENTITIES = ["O", "Concept", "Action", "Predicate", "Reference"]
+
+RELATIONS = [
+    "O",
+    "is-a",
+    "part-of",
+    "has-property",
+    "causes",
+    "entails",
+    "in-context",
+    "in-place",
+    "in-time",
+    "subject",
+    "target",
+    "domain",
+    "arg",
+]
+
+entity_w2id = { w:i for i, w in enumerate(ENTITIES) }
+entity_id2w = { i:w for i, w in enumerate(ENTITIES) }
+relation_w2id = { w:i for i, w in enumerate(RELATIONS) }
+relation_id2w = { i:w for i, w in enumerate(RELATIONS) }
 
 class Classifier(nn.Module):
     def __init__(self, input_dim, output_dim):
@@ -14,14 +34,15 @@ class Classifier(nn.Module):
 
         self.linear1 = nn.Linear(input_dim, input_dim)
         self.dropout = nn.Dropout(p=0.2)
-        self.act = mish
+        self.tanh = nn.Tanh()
+        self.softplus = nn.Softplus()
         self.linear2 = nn.Linear(input_dim, output_dim)
-        self.softmax = nn.Softmax(2)
+        self.softmax = nn.LogSoftmax(2)
 
     def forward(self, x):
         x = self.linear1(x)
         x = self.dropout(x)
-        x = self.act(x)
+        x = x * self.tanh(self.softplus(x))
         x = self.linear2(x)
         return self.softmax(x)
         
@@ -62,7 +83,7 @@ class Vicomtech(nn.Module):
         embeddings = self.beto(**tokens)['last_hidden_state']
 
         # part 2
-        entity = self.entity_softmax(self.entity_layer(embeddings))
+        entity = self.entity_classifier(embeddings)
 
         # part 23
         embeddings_entity = torch.cat([embeddings, entity], 2)
