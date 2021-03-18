@@ -50,7 +50,7 @@ class Classifier(nn.Module):
 class Vicomtech(nn.Module):
     def __init__(self, beto_path='dccuchile/bert-base-spanish-wwm-cased', 
                        hdim=768, edim=5, rdim=13,
-                       distilbert_nlayers=2, distilbert_nheads=2):
+                       distilbert_nlayers=2, distilbert_nheads=2, device='cuda'):
         super(Vicomtech, self).__init__()
         self.hdim = hdim
         self.edim = edim
@@ -75,7 +75,7 @@ class Vicomtech(nn.Module):
 
         self.related_classifier = Classifier(hdim, 2)
 
-        self.relation_type_classifier = Classifier(hdim+2, 2)
+        self.relation_type_classifier = Classifier(hdim+2, rdim)
 
     def forward(self, texts):
         # part 1
