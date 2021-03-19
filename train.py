@@ -213,19 +213,30 @@ class Train:
     def eval(self):
         self.model.eval()
 
-        entity_pred, entity_true, relation_pred, relation_true = [], [], [], []
+        entity_pred, entity_true, is_related_pred, is_related_true, relation_pred, relation_true = [], [], [], [], [], []
         for sentence, entity_ids, relation_ids in zip(self.dev_X, self.dev_entity, self.dev_relation):
             # Predict
             entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(sentence)
+
+            len_sentence = entity_probs.shape[1]
 
             # Entity
             entity_pred.extend([int(w) for w in list(entity_probs[0].argmax(dim=1))])
             entity_true.extend([int(w) for w in list(entity_ids)])
 
+            # Is Related
+            current_is_related_pred = [int(w) for w in list(related_probs[0].argmax(dim=1))]
+            is_related_pred.extend(current_is_related_pred)
+            current_is_related_true = np.zeros((len_sentence, len_sentence))
+            for relation in relation_ids:
+                idx1, idx2 = relation[0], relation[1]
+                current_is_related_true[idx1, idx2] = 1
+            current_is_related_true = current_is_related_true.reshape(len_sentence ** 2)
+            is_related_true.extend([int(w) for w in list(current_is_related_true)])
+
             # Relation type
             current_relation_pred = [int(w) for w in list(related_type_probs[0].argmax(dim=1))]
             relation_pred.extend(current_relation_pred)
-            len_sentence = int(np.sqrt(len(current_relation_pred)))
             current_relation_true = np.zeros((len_sentence, len_sentence))
             for relation in relation_ids:
                 idx1, idx2, label = relation[0], relation[1], relation[2]
@@ -239,9 +250,13 @@ class Train:
         print(classification_report(entity_true, entity_pred, labels=entity_labels, target_names=entity_target_names))
         print()
 
+        print("Is related report:")
+        print(classification_report(is_related_true, is_related_pred))
+        print()
+
         relation_labels = list(range(1, len(RELATIONS)))
         relation_target_names = RELATIONS[1:]
-        print("Relation report")
+        print("Relation type report")
         print(classification_report(relation_true, relation_pred, labels=relation_labels,
                                     target_names=relation_target_names))
         print()
