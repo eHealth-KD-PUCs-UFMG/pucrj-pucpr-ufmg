@@ -211,18 +211,39 @@ class Train:
             # TO DO EVALUATION
 
     def eval(self):
+        def get_single_output_id_list(y):
+            return [index for indexes in y for index in indexes]
+
         self.model.eval()
 
-        entity_pred, entity_true, is_related_pred, is_related_true, relation_pred, relation_true = [], [], [], [], [], []
-        for sentence, entity_ids, relation_ids in zip(self.dev_X, self.dev_entity, self.dev_relation):
+        entity_pred, entity_true, is_related_pred, is_related_true, multiword_pred, multiword_pred_output, multiword_true, relation_pred, relation_true = [], [], [], [], [], [], [], [], []
+        for sentence, entity_ids, multiword_ids, relation_ids in zip(self.dev_X, self.dev_entity, self.dev_multiword,
+                                                                     self.dev_relation):
             # Predict
             entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(sentence)
 
             len_sentence = entity_probs.shape[1]
 
             # Entity
-            entity_pred.extend([int(w) for w in list(entity_probs[0].argmax(dim=1))])
-            entity_true.extend([int(w) for w in list(entity_ids)])
+            entity_pred.append([int(w) for w in list(entity_probs[0].argmax(dim=1))])
+            entity_true.append([int(w) for w in list(entity_ids)])
+
+            # Multiword
+            current_multiword_pred = [int(w) for w in list(multiword_probs[0].argmax(dim=1))]
+            multiword_matrix = np.array(current_multiword_pred).reshape((len_sentence, len_sentence))
+            multiword_output = []
+            for i in range(len_sentence):
+                for j in range(len_sentence):
+                    if multiword_matrix[i, j] == 1:
+                        multiword_output.append((i, j))
+            multiword_pred_output.append(multiword_output)
+            multiword_pred.extend(current_multiword_pred)
+            current_multiword_true = np.zeros((len_sentence, len_sentence))
+            for multiword in multiword_ids:
+                idx1, idx2 = multiword[0], multiword[1]
+                current_multiword_true[idx1, idx2] = 1
+            current_multiword_true = current_multiword_true.reshape(len_sentence ** 2)
+            multiword_true.extend([int(w) for w in list(current_multiword_true)])
 
             # Is Related
             current_is_related_pred = [int(w) for w in list(related_probs[0].argmax(dim=1))]
@@ -247,16 +268,22 @@ class Train:
         entity_labels = list(range(1, len(ENTITIES)))
         entity_target_names = ENTITIES[1:]
         print("Entity report:")
-        print(classification_report(entity_true, entity_pred, labels=entity_labels, target_names=entity_target_names))
+        print(classification_report(get_single_output_id_list(entity_true), get_single_output_id_list(entity_pred),
+                                    labels=entity_labels, target_names=entity_target_names))
         print()
 
         print("Is related report:")
+        print(classification_report(multiword_true, multiword_pred))
+        print()
+
+        print("Multiword report:")
         print(classification_report(is_related_true, is_related_pred))
         print()
 
-        relation_labels = list(range(1, len(RELATIONS)))
-        relation_target_names = RELATIONS[1:]
+        relation_labels = list(range(0, len(RELATIONS)))
+        relation_target_names = RELATIONS[0:]
         print("Relation type report")
         print(classification_report(relation_true, relation_pred, labels=relation_labels,
                                     target_names=relation_target_names))
         print()
+        return entity_pred, entity_true, multiword_pred_output, is_related_pred, relation_pred
