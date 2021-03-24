@@ -33,7 +33,8 @@ relation_w2id = { w:i for i, w in enumerate(RELATIONS) }
 relation_id2w = { i:w for i, w in enumerate(RELATIONS) }
 
 class Train:
-    def __init__(self, model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16, early_stop=5, device='cuda'):
+    def __init__(self, model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16,
+                 early_stop=5, device='cuda'):
         self.epochs = epochs
         self.batch_size = batch_size
         self.batch_status = batch_status
@@ -47,7 +48,8 @@ class Train:
         self.criterion = criterion
         self.optimizer = optimizer
 
-        self.train_X, self.train_entity, self.train_multiword, self.train_sameas, self.train_relation = self.preprocess(traindata)
+        self.train_X, self.train_entity, self.train_multiword, self.train_sameas, self.train_relation = self.preprocess(
+            traindata)
         self.dev_X, self.dev_entity, self.dev_multiword, self.dev_sameas, self.dev_relation = self.preprocess(devdata)
 
     def preprocess(self, procset):
@@ -68,11 +70,13 @@ class Train:
 
                     # mark only first subword with entity type
                     label_idx = entity_w2id[keyphrase['label']]
-                    entity[idxs[0]] = label_idx
-                    
+                    for idx in idxs:
+                        if not tokens[idx].startswith('##'):
+                            entity[idx] = label_idx
+
                     # multiword
                     for idx in idxs:
-                        multiword.extend([(idx, idx_) for idx_ in idxs])
+                        multiword.extend([(idx, idx_) for idx_ in idxs if idx != idx_])
                 except:
                     pass
 
@@ -93,7 +97,7 @@ class Train:
                         relation.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
                 except:
                     pass
-            
+
             X.append(text)
             y_entity.append(torch.tensor(entity))
             y_multiword.append(torch.tensor(multiword))
@@ -101,24 +105,26 @@ class Train:
             y_relation.append(torch.tensor(relation))
         return X, y_entity, y_multiword, y_sameas, y_relation
 
-
     def compute_loss(self, entity_probs, batch_entity, multiword_probs, batch_multiword, \
-                    sameas_probs, batch_sameas, related_probs, batch_relation,\
-                    related_type_probs):
+                     sameas_probs, batch_sameas, related_probs, batch_relation, \
+                     related_type_probs):
         # entity loss
         batch, seq_len, dim = entity_probs.size()
         entity_real = torch.nn.utils.rnn.pad_sequence(batch_entity).transpose(0, 1).to(self.device)
-        entity_loss = self.criterion(entity_probs.view(batch*seq_len, dim), entity_real.reshape(-1))
+        entity_loss = self.criterion(entity_probs.view(batch * seq_len, dim), entity_real.reshape(-1))
 
         # multiword loss
         batch, seq_len, dim = multiword_probs.size()
         rowcol_len = int(np.sqrt(seq_len))
         multiword_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
         for i in range(batch):
-            rows, columns = batch_multiword[i][:, 0], batch_multiword[i][:, 1]
-            multiword_real[i, rows, columns] = 1
+            try:
+                rows, columns = batch_multiword[i][:, 0], batch_multiword[i][:, 1]
+                multiword_real[i, rows, columns] = 1
+            except:
+                pass
 
-        multiword_loss = self.criterion(multiword_probs.view(batch*seq_len, dim), multiword_real.view(-1))
+        multiword_loss = self.criterion(multiword_probs.view(batch * seq_len, dim), multiword_real.view(-1))
 
         # sameas loss
         batch, seq_len, dim = sameas_probs.size()
@@ -131,7 +137,7 @@ class Train:
             except:
                 pass
 
-        sameas_loss = self.criterion(sameas_probs.view(batch*seq_len, dim), sameas_real.view(-1))
+        sameas_loss = self.criterion(sameas_probs.view(batch * seq_len, dim), sameas_real.view(-1))
 
         # relation loss
         batch, seq_len, dim = related_probs.size()
@@ -144,7 +150,7 @@ class Train:
             except:
                 pass
 
-        relation_loss = self.criterion(related_probs.view(batch*seq_len, dim), relation_real.view(-1))
+        relation_loss = self.criterion(related_probs.view(batch * seq_len, dim), relation_real.view(-1))
 
         # relation type loss
         batch, seq_len, dim = related_type_probs.size()
@@ -158,11 +164,10 @@ class Train:
             except:
                 pass
 
-        relation_type_loss = self.criterion(related_type_probs.view(batch*seq_len, dim), relation_real.view(-1))
+        relation_type_loss = self.criterion(related_type_probs.view(batch * seq_len, dim), relation_real.view(-1))
 
         loss = entity_loss + multiword_loss + sameas_loss + relation_loss + relation_type_loss
         return loss
-
 
     def train(self):
         self.model.train()
@@ -178,7 +183,7 @@ class Train:
                 batch_sameas.append(self.train_sameas[batch_idx])
                 batch_relation.append(self.train_relation[batch_idx])
 
-                if (batch_idx+1) % self.batch_size == 0:
+                if (batch_idx + 1) % self.batch_size == 0:
                     # Init
                     self.optimizer.zero_grad()
 
@@ -186,12 +191,12 @@ class Train:
                     entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(batch_X)
 
                     # Calculate loss
-                    loss = self.compute_loss(entity_probs, 
-                                             batch_entity, 
-                                             multiword_probs, 
-                                             batch_multiword, 
-                                             sameas_probs, batch_sameas, 
-                                             related_probs, 
+                    loss = self.compute_loss(entity_probs,
+                                             batch_entity,
+                                             multiword_probs,
+                                             batch_multiword,
+                                             sameas_probs, batch_sameas,
+                                             related_probs,
                                              batch_relation,
                                              related_type_probs)
                     losses.append(float(loss))
@@ -203,12 +208,11 @@ class Train:
                     batch_X, batch_entity, batch_multiword, batch_sameas, batch_relation = [], [], [], [], []
 
                 # Display
-                if (batch_idx+1) % self.batch_status == 0:
+                if (batch_idx + 1) % self.batch_status == 0:
                     print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTotal Loss: {:.6f}'.format(
-                    epoch, batch_idx+1, len(self.train_X),
-                    100. * batch_idx / len(self.train_X), float(loss), round(sum(losses) / len(losses), 5)))
-            
-            # TO DO EVALUATION
+                        epoch, batch_idx + 1, len(self.train_X),
+                               100. * batch_idx / len(self.train_X), float(loss), round(sum(losses) / len(losses), 5)))
+
 
     def eval(self):
         def get_single_output_id_list(y):
