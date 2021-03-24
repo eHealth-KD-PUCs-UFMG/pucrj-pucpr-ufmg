@@ -63,6 +63,7 @@ class Vicomtech(nn.Module):
 
         # DistilBERT
         self.distil_layer = nn.Linear(2*(hdim+edim), hdim)
+        self.tanh = nn.Tanh()
         configuration = DistilBertConfig(vocab_size=len(self.tokenizer.vocab), 
                                         n_layers=distilbert_nlayers, n_heads=distilbert_nheads)
         self.distilbert = DistilBertModel(configuration)
@@ -99,7 +100,7 @@ class Vicomtech(nn.Module):
             embent_embent[:, seq_len*i:seq_len*i+seq_len, :] = m2
 
         # thiago addition to adequate dimensions from step 3 to 4
-        inp_distilbert = self.distil_layer(embent_embent)
+        inp_distilbert = self.tanh(self.distil_layer(embent_embent))
         # part 4
         ssd = self.distilbert(inputs_embeds=inp_distilbert)['last_hidden_state']
 
