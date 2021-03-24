@@ -48,12 +48,12 @@ class Train:
         self.criterion = criterion
         self.optimizer = optimizer
 
-        self.train_X, self.train_entity, self.train_multiword, self.train_sameas, self.train_relation = self.preprocess(
+        self.train_X, self.train_entity, self.train_multiword, self.train_sameas, self.train_relation, self.train_relation_type = self.preprocess(
             traindata)
-        self.dev_X, self.dev_entity, self.dev_multiword, self.dev_sameas, self.dev_relation = self.preprocess(devdata)
+        self.dev_X, self.dev_entity, self.dev_multiword, self.dev_sameas, self.dev_relation, self.dev_relation_type = self.preprocess(devdata)
 
     def preprocess(self, procset):
-        X, y_entity, y_multiword, y_sameas, y_relation = [], [], [], [], []
+        X, y_entity, y_multiword, y_sameas, y_relation, y_relation_type = [], [], [], [], [], []
         for row in procset:
             text = row['text']
             tokens = row['tokens']
@@ -76,12 +76,29 @@ class Train:
 
                     # multiword
                     for idx in idxs:
-                        multiword.extend([(idx, idx_) for idx_ in idxs if idx != idx_])
+                        multiword.extend([(idx, idx_, 1) for idx_ in idxs if idx != idx_])
+
+                    # negative examples (before first idx, after last ids,)
+                    # - negative examples surrounding first and last idxs
+                    idxs = sorted(idxs)
+                    end = idxs[-1]
+                    for idx in idxs:
+                        for idx_ in range(idx, end):
+                            if idx_ not in idxs:
+                                multiword.append((idx, idx_, 0))
+                    # - negative examples between first idx and its neighboor antecedent
+                    start = idxs[0]
+                    if start > 0:
+                        multiword.append((start-1, start, 0))
+                    # - negative examples between last idx and its neighboor successor
+                    end = idxs[-1]
+                    if end+1 < len(idxs):
+                        multiword.append((end, end+1, 0))
                 except:
                     pass
 
             # relations gold-standards
-            sameas, relation = [], []
+            sameas, relation, relation_type = [], [], []
             for relation_ in row['relations']:
                 try:
                     arg1 = relation_['arg1']
@@ -92,22 +109,37 @@ class Train:
 
                     label = relation_['label']
                     if label == 'same-as':
-                        sameas.append((arg1_idx0, arg2_idx0))
+                        sameas.append((arg1_idx0, arg2_idx0, 1))
+                        sameas.append((arg2_idx0, arg1_idx0, 1))
                     else:
-                        relation.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
+                        relation.append((arg1_idx0, arg2_idx0, 1))
+                        relation_type.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
+                        # negative same-as relation
+                        sameas.append((arg1_idx0, arg2_idx0, 0))
+                        sameas.append((arg2_idx0, arg1_idx0, 0))
                 except:
                     pass
-
+            
+            # negative relation examples
+            arg1_idx0s = [w[0] for w in relation]
+            arg2_idx0s = [w[1] for w in relation]
+            for arg1_idx0 in arg1_idx0s:
+                for arg2_idx0 in arg2_idx0s:
+                    f = [w for w in relation if w[0] == arg1_idx0 and w[1] == arg2_idx0]
+                    if len(f) == 0:
+                        relation.append((arg1_idx0, arg2_idx0, 0))
+            
             X.append(text)
             y_entity.append(torch.tensor(entity))
             y_multiword.append(torch.tensor(multiword))
             y_sameas.append(torch.tensor(sameas))
             y_relation.append(torch.tensor(relation))
-        return X, y_entity, y_multiword, y_sameas, y_relation
+            y_relation_type.append(torch.tensor(relation_type))
+        return X, y_entity, y_multiword, y_sameas, y_relation, y_relation_type
 
     def compute_loss(self, entity_probs, batch_entity, multiword_probs, batch_multiword, \
                      sameas_probs, batch_sameas, related_probs, batch_relation, \
-                     related_type_probs):
+                     related_type_probs, batch_relation_type):
         # entity loss
         batch, seq_len, dim = entity_probs.size()
         entity_real = torch.nn.utils.rnn.pad_sequence(batch_entity).transpose(0, 1).to(self.device)
@@ -116,55 +148,103 @@ class Train:
         # multiword loss
         batch, seq_len, dim = multiword_probs.size()
         rowcol_len = int(np.sqrt(seq_len))
-        multiword_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
+        multiword_probs = multiword_probs.view((batch, rowcol_len, rowcol_len, dim))
+        
+        multiword_real = []
+        multiword_pred = []
         for i in range(batch):
             try:
                 rows, columns = batch_multiword[i][:, 0], batch_multiword[i][:, 1]
-                multiword_real[i, rows, columns] = 1
+                labels = batch_multiword[i][:, 2]
+                multiword_real.extend(labels.tolist())
+  
+                preds = multiword_probs[i, rows, columns]
+                multiword_pred.append(preds)
             except:
                 pass
-
-        multiword_loss = self.criterion(multiword_probs.view(batch * seq_len, dim), multiword_real.view(-1))
+        
+        try:
+            multiword_pred = torch.cat(multiword_pred, 0).to(self.device)
+            multiword_real = torch.tensor(multiword_real).to(self.device)
+            multiword_loss = self.criterion(multiword_pred, multiword_real)
+        except:
+            multiword_loss = 0
 
         # sameas loss
         batch, seq_len, dim = sameas_probs.size()
         rowcol_len = int(np.sqrt(seq_len))
-        sameas_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
+        sameas_probs = sameas_probs.view((batch, rowcol_len, rowcol_len, dim))
+
+        sameas_real = []
+        sameas_pred = []
         for i in range(batch):
             try:
                 rows, columns = batch_sameas[i][:, 0], batch_sameas[i][:, 1]
-                sameas_real[i, rows, columns] = 1
+                labels = batch_sameas[i][:, 2]
+                sameas_real.extend(labels.tolist())
+
+                preds = sameas_probs[i, rows, columns]
+                sameas_pred.append(preds)
             except:
                 pass
 
-        sameas_loss = self.criterion(sameas_probs.view(batch * seq_len, dim), sameas_real.view(-1))
+        try:
+            sameas_pred = torch.cat(sameas_pred, 0).to(self.device)
+            sameas_real = torch.tensor(sameas_real).to(self.device)
+            sameas_loss = self.criterion(sameas_pred, sameas_real)
+        except:
+            sameas_loss = 0
 
         # relation loss
         batch, seq_len, dim = related_probs.size()
         rowcol_len = int(np.sqrt(seq_len))
-        relation_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
-        for i in range(batch):
-            try:
-                rows, columns = batch_relation[i][:, 0], batch_relation[i][:, 1]
-                relation_real[i, rows, columns] = 1
-            except:
-                pass
+        related_probs = related_probs.view((batch, rowcol_len, rowcol_len, dim))
 
-        relation_loss = self.criterion(related_probs.view(batch * seq_len, dim), relation_real.view(-1))
-
-        # relation type loss
-        batch, seq_len, dim = related_type_probs.size()
-        rowcol_len = int(np.sqrt(seq_len))
-        relation_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
+        related_real = []
+        related_pred = []
         for i in range(batch):
             try:
                 rows, columns = batch_relation[i][:, 0], batch_relation[i][:, 1]
                 labels = batch_relation[i][:, 2]
-                relation_real[i, rows, columns] = labels
+                related_real.extend(labels.tolist())
+  
+                preds = related_probs[i, rows, columns]
+                related_pred.append(preds)
             except:
                 pass
+        
+        try:
+            related_pred = torch.cat(related_pred, 0).to(self.device)
+            related_real = torch.tensor(related_real).to(self.device)
+            relation_loss = self.criterion(related_pred, related_real)
+        except:
+            relation_loss = 0
 
-        relation_type_loss = self.criterion(related_type_probs.view(batch * seq_len, dim), relation_real.view(-1))
+        # relation type loss
+        batch, seq_len, dim = related_type_probs.size()
+        rowcol_len = int(np.sqrt(seq_len))
+        related_type_probs = related_type_probs.view((batch, rowcol_len, rowcol_len, dim))
+
+        relation_real = []
+        relation_pred = []
+
+        for i in range(batch):
+            try:
+                rows, columns = batch_relation_type[i][:, 0], batch_relation_type[i][:, 1]
+                labels = batch_relation_type[i][:, 2]
+                relation_real.extend(labels.tolist())
+
+                preds = related_type_probs[i, rows, columns]
+                relation_pred.append(preds)
+            except:
+                pass
+        
+        try:
+            relation_pred = torch.cat(relation_pred, 0).to(self.device)
+            relation_real = torch.tensor(relation_real).to(self.device)
+            relation_type_loss = self.criterion(relation_pred, relation_real)
+        except:
+            relation_type_loss = 0
 
         loss = entity_loss + multiword_loss + sameas_loss + relation_loss + relation_type_loss
         return loss
@@ -174,7 +254,7 @@ class Train:
 
         for epoch in range(self.epochs):
             losses = []
-            batch_X, batch_entity, batch_multiword, batch_sameas, batch_relation = [], [], [], [], []
+            batch_X, batch_entity, batch_multiword, batch_sameas, batch_relation, batch_relation_type = [], [], [], [], [], []
 
             for batch_idx, inp in enumerate(self.train_X):
                 batch_X.append(self.train_X[batch_idx])
@@ -182,6 +262,7 @@ class Train:
                 batch_multiword.append(self.train_multiword[batch_idx])
                 batch_sameas.append(self.train_sameas[batch_idx])
                 batch_relation.append(self.train_relation[batch_idx])
+                batch_relation_type.append(self.train_relation_type[batch_idx])
 
                 if (batch_idx + 1) % self.batch_size == 0:
                     # Init
@@ -198,14 +279,15 @@ class Train:
                                              sameas_probs, batch_sameas,
                                              related_probs,
                                              batch_relation,
-                                             related_type_probs)
+                                             related_type_probs, 
+                                             batch_relation_type)
                     losses.append(float(loss))
 
                     # Backpropagation
                     loss.backward()
                     self.optimizer.step()
 
-                    batch_X, batch_entity, batch_multiword, batch_sameas, batch_relation = [], [], [], [], []
+                    batch_X, batch_entity, batch_multiword, batch_sameas, batch_relation, batch_relation_type = [], [], [], [], [], []
 
                 # Display
                 if (batch_idx + 1) % self.batch_status == 0:
