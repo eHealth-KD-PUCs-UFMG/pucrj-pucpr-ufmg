@@ -27,10 +27,10 @@ RELATIONS = [
     "arg",
 ]
 
-entity_w2id = { w:i for i, w in enumerate(ENTITIES) }
-entity_id2w = { i:w for i, w in enumerate(ENTITIES) }
-relation_w2id = { w:i for i, w in enumerate(RELATIONS) }
-relation_id2w = { i:w for i, w in enumerate(RELATIONS) }
+entity_w2id = {w: i for i, w in enumerate(ENTITIES)}
+entity_id2w = {i: w for i, w in enumerate(ENTITIES)}
+relation_w2id = {w: i for i, w in enumerate(RELATIONS)}
+relation_id2w = {i: w for i, w in enumerate(RELATIONS)}
 
 class Train:
     def __init__(self, model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16,
@@ -50,7 +50,8 @@ class Train:
 
         self.train_X, self.train_entity, self.train_multiword, self.train_sameas, self.train_relation, self.train_relation_type = self.preprocess(
             traindata)
-        self.dev_X, self.dev_entity, self.dev_multiword, self.dev_sameas, self.dev_relation, self.dev_relation_type = self.preprocess(devdata)
+        self.dev_X, self.dev_entity, self.dev_multiword, self.dev_sameas, self.dev_relation, self.dev_relation_type = self.preprocess(
+            devdata)
 
     def preprocess(self, procset):
         X, y_entity, y_multiword, y_sameas, y_relation, y_relation_type = [], [], [], [], [], []
@@ -89,11 +90,11 @@ class Train:
                     # - negative examples between first idx and its neighboor antecedent
                     start = idxs[0]
                     if start > 0:
-                        multiword.append((start-1, start, 0))
+                        multiword.append((start - 1, start, 0))
                     # - negative examples between last idx and its neighboor successor
                     end = idxs[-1]
-                    if end+1 < len(idxs):
-                        multiword.append((end, end+1, 0))
+                    if end + 1 < len(idxs):
+                        multiword.append((end, end + 1, 0))
                 except:
                     pass
 
@@ -119,7 +120,7 @@ class Train:
                         sameas.append((arg2_idx0, arg1_idx0, 0))
                 except:
                     pass
-            
+
             # negative relation examples
             arg1_idx0s = [w[0] for w in relation]
             arg2_idx0s = [w[1] for w in relation]
@@ -128,7 +129,7 @@ class Train:
                     f = [w for w in relation if w[0] == arg1_idx0 and w[1] == arg2_idx0]
                     if len(f) == 0:
                         relation.append((arg1_idx0, arg2_idx0, 0))
-            
+
             X.append(text)
             y_entity.append(torch.tensor(entity))
             y_multiword.append(torch.tensor(multiword))
@@ -149,7 +150,7 @@ class Train:
         batch, seq_len, dim = multiword_probs.size()
         rowcol_len = int(np.sqrt(seq_len))
         multiword_probs = multiword_probs.view((batch, rowcol_len, rowcol_len, dim))
-        
+
         multiword_real = []
         multiword_pred = []
         for i in range(batch):
@@ -157,12 +158,12 @@ class Train:
                 rows, columns = batch_multiword[i][:, 0], batch_multiword[i][:, 1]
                 labels = batch_multiword[i][:, 2]
                 multiword_real.extend(labels.tolist())
-  
+
                 preds = multiword_probs[i, rows, columns]
                 multiword_pred.append(preds)
             except:
                 pass
-        
+
         try:
             multiword_pred = torch.cat(multiword_pred, 0).to(self.device)
             multiword_real = torch.tensor(multiword_real).to(self.device)
@@ -207,12 +208,12 @@ class Train:
                 rows, columns = batch_relation[i][:, 0], batch_relation[i][:, 1]
                 labels = batch_relation[i][:, 2]
                 related_real.extend(labels.tolist())
-  
+
                 preds = related_probs[i, rows, columns]
                 related_pred.append(preds)
             except:
                 pass
-        
+
         try:
             related_pred = torch.cat(related_pred, 0).to(self.device)
             related_real = torch.tensor(related_real).to(self.device)
@@ -238,7 +239,7 @@ class Train:
                 relation_pred.append(preds)
             except:
                 pass
-        
+
         try:
             relation_pred = torch.cat(relation_pred, 0).to(self.device)
             relation_real = torch.tensor(relation_real).to(self.device)
@@ -279,7 +280,7 @@ class Train:
                                              sameas_probs, batch_sameas,
                                              related_probs,
                                              batch_relation,
-                                             related_type_probs, 
+                                             related_type_probs,
                                              batch_relation_type)
                     losses.append(float(loss))
 
@@ -295,16 +296,34 @@ class Train:
                         epoch, batch_idx + 1, len(self.train_X),
                                100. * batch_idx / len(self.train_X), float(loss), round(sum(losses) / len(losses), 5)))
 
-
     def eval(self):
-        def get_single_output_id_list(y):
+        def _get_single_output_id_list(y):
             return [index for indexes in y for index in indexes]
+
+        def _get_binary_relation_output(relation_ids, relation_probs, len_sentence):
+            relation_array = [int(w) for w in list(relation_probs[0].argmax(dim=1))]
+            relation_matrix = np.array(relation_array).reshape((len_sentence, len_sentence))
+            relation_output = []
+            for i in range(len_sentence):
+                for j in range(len_sentence):
+                    if relation_matrix[i, j] == 1:
+                        relation_output.append((i, j, 1))
+
+            relation_true, relation_pred = [], []
+            for relation in relation_ids:
+                idx1, idx2, label = relation
+                relation_true.append(int(label))
+                relation_pred.append(int(relation_matrix[idx1, idx2]))
+                # relation_output.append((int(idx1), int(idx2), int(relation_matrix[idx1, idx2])))
+            return relation_true, relation_pred, relation_output
 
         self.model.eval()
 
         entity_pred, entity_true, is_related_pred, is_related_true, multiword_pred, multiword_pred_output, multiword_true, relation_pred, relation_true = [], [], [], [], [], [], [], [], []
-        for sentence, entity_ids, multiword_ids, relation_ids in zip(self.dev_X, self.dev_entity, self.dev_multiword,
-                                                                     self.dev_relation):
+        for sentence, entity_ids, multiword_ids, relation_ids, relation_type_ids in zip(self.dev_X, self.dev_entity,
+                                                                                        self.dev_multiword,
+                                                                                        self.dev_relation,
+                                                                                        self.dev_relation_type):
             # Predict
             entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(sentence)
 
@@ -315,59 +334,52 @@ class Train:
             entity_true.append([int(w) for w in list(entity_ids)])
 
             # Multiword
-            current_multiword_pred = [int(w) for w in list(multiword_probs[0].argmax(dim=1))]
-            multiword_matrix = np.array(current_multiword_pred).reshape((len_sentence, len_sentence))
-            multiword_output = []
-            for i in range(len_sentence):
-                for j in range(len_sentence):
-                    if multiword_matrix[i, j] == 1:
-                        multiword_output.append((i, j))
-            multiword_pred_output.append(multiword_output)
+            current_multiword_true, current_multiword_pred, multiword_output = _get_binary_relation_output(
+                multiword_ids, multiword_probs, len_sentence)
+            multiword_true.extend(current_multiword_true)
             multiword_pred.extend(current_multiword_pred)
-            current_multiword_true = np.zeros((len_sentence, len_sentence))
-            for multiword in multiword_ids:
-                idx1, idx2 = multiword[0], multiword[1]
-                current_multiword_true[idx1, idx2] = 1
-            current_multiword_true = current_multiword_true.reshape(len_sentence ** 2)
-            multiword_true.extend([int(w) for w in list(current_multiword_true)])
+            multiword_pred_output.append(multiword_output)
 
             # Is Related
-            current_is_related_pred = [int(w) for w in list(related_probs[0].argmax(dim=1))]
+            current_is_related_true, current_is_related_pred, _ = _get_binary_relation_output(relation_ids,
+                                                                                              related_probs,
+                                                                                              len_sentence)
+            is_related_true.extend(current_is_related_true)
             is_related_pred.extend(current_is_related_pred)
-            current_is_related_true = np.zeros((len_sentence, len_sentence))
-            for relation in relation_ids:
-                idx1, idx2 = relation[0], relation[1]
-                current_is_related_true[idx1, idx2] = 1
-            current_is_related_true = current_is_related_true.reshape(len_sentence ** 2)
-            is_related_true.extend([int(w) for w in list(current_is_related_true)])
 
             # Relation type
-            current_relation_pred = [int(w) for w in list(related_type_probs[0].argmax(dim=1))]
-            relation_pred.extend(current_relation_pred)
-            current_relation_true = np.zeros((len_sentence, len_sentence))
+            relation_type_array = [int(w) for w in list(related_type_probs[0].argmax(dim=1))]
+            relation_type_matrix = np.array(relation_type_array).reshape((len_sentence, len_sentence))
+            relation_type_true, relation_type_pred = [], []
             for relation in relation_ids:
-                idx1, idx2, label = relation[0], relation[1], relation[2]
-                current_relation_true[idx1, idx2] = label
-            current_relation_true = current_relation_true.reshape(len_sentence ** 2)
-            relation_true.extend([int(w) for w in list(current_relation_true)])
+                idx1, idx2, label = relation
+                if label == 0:
+                    relation_type_true.append(int(label))
+                    relation_type_pred.append(int(relation_type_matrix[idx1, idx2]))
+            for relation in relation_type_ids:
+                idx1, idx2, label = relation
+                relation_type_true.append(int(label))
+                relation_type_pred.append(int(relation_type_matrix[idx1, idx2]))
+            relation_true.extend(relation_type_true)
+            relation_pred.extend(relation_type_pred)
 
         entity_labels = list(range(1, len(ENTITIES)))
         entity_target_names = ENTITIES[1:]
         print("Entity report:")
-        print(classification_report(get_single_output_id_list(entity_true), get_single_output_id_list(entity_pred),
+        print(classification_report(_get_single_output_id_list(entity_true), _get_single_output_id_list(entity_pred),
                                     labels=entity_labels, target_names=entity_target_names))
         print()
 
-        print("Is related report:")
+        print("Multiword report:")
         print(classification_report(multiword_true, multiword_pred))
         print()
 
-        print("Multiword report:")
+        print("Is related report:")
         print(classification_report(is_related_true, is_related_pred))
         print()
 
-        relation_labels = list(range(0, len(RELATIONS)))
-        relation_target_names = RELATIONS[0:]
+        relation_labels = list(range(1, len(RELATIONS)))
+        relation_target_names = RELATIONS[1:]
         print("Relation type report")
         print(classification_report(relation_true, relation_pred, labels=relation_labels,
                                     target_names=relation_target_names))
