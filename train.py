@@ -32,6 +32,7 @@ entity_id2w = {i: w for i, w in enumerate(ENTITIES)}
 relation_w2id = {w: i for i, w in enumerate(RELATIONS)}
 relation_id2w = {i: w for i, w in enumerate(RELATIONS)}
 
+
 class Train:
     def __init__(self, model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16,
                  early_stop=5, device='cuda'):
@@ -300,23 +301,6 @@ class Train:
         def _get_single_output_id_list(y):
             return [index for indexes in y for index in indexes]
 
-        def _get_binary_relation_output(relation_ids, relation_probs, len_sentence):
-            relation_array = [int(w) for w in list(relation_probs[0].argmax(dim=1))]
-            relation_matrix = np.array(relation_array).reshape((len_sentence, len_sentence))
-            relation_output = []
-            for i in range(len_sentence):
-                for j in range(len_sentence):
-                    if relation_matrix[i, j] == 1:
-                        relation_output.append((i, j, 1))
-
-            relation_true, relation_pred = [], []
-            for relation in relation_ids:
-                idx1, idx2, label = relation
-                relation_true.append(int(label))
-                relation_pred.append(int(relation_matrix[idx1, idx2]))
-                # relation_output.append((int(idx1), int(idx2), int(relation_matrix[idx1, idx2])))
-            return relation_true, relation_pred, relation_output
-
         self.model.eval()
 
         entity_pred, entity_true, is_related_pred, is_related_true, multiword_pred, multiword_pred_output, multiword_true, relation_pred, relation_true = [], [], [], [], [], [], [], [], []
@@ -334,32 +318,31 @@ class Train:
             entity_true.append([int(w) for w in list(entity_ids)])
 
             # Multiword
-            current_multiword_true, current_multiword_pred, multiword_output = _get_binary_relation_output(
-                multiword_ids, multiword_probs, len_sentence)
+            multiword_array = [int(w) for w in list(multiword_probs[0].argmax(dim=1))]
+            multiword_matrix = np.array(multiword_array).reshape((len_sentence, len_sentence))
+            multiword_output = self._get_relation_output(multiword_matrix, 1, len_sentence)
+            current_multiword_true, current_multiword_pred = self._get_relation_eval(multiword_ids, multiword_matrix)
             multiword_true.extend(current_multiword_true)
             multiword_pred.extend(current_multiword_pred)
             multiword_pred_output.append(multiword_output)
 
             # Is Related
-            current_is_related_true, current_is_related_pred, _ = _get_binary_relation_output(relation_ids,
-                                                                                              related_probs,
-                                                                                              len_sentence)
+            related_array = [int(w) for w in list(related_probs[0].argmax(dim=1))]
+            related_matrix = np.array(related_array).reshape((len_sentence, len_sentence))
+            current_is_related_true, current_is_related_pred = self._get_relation_eval(relation_ids, related_matrix)
             is_related_true.extend(current_is_related_true)
             is_related_pred.extend(current_is_related_pred)
 
             # Relation type
             relation_type_array = [int(w) for w in list(related_type_probs[0].argmax(dim=1))]
             relation_type_matrix = np.array(relation_type_array).reshape((len_sentence, len_sentence))
-            relation_type_true, relation_type_pred = [], []
+
+            relation_type_true, relation_type_pred = self._get_relation_eval(relation_type_ids, relation_type_matrix)
             for relation in relation_ids:
                 idx1, idx2, label = relation
                 if label == 0:
                     relation_type_true.append(int(label))
                     relation_type_pred.append(int(relation_type_matrix[idx1, idx2]))
-            for relation in relation_type_ids:
-                idx1, idx2, label = relation
-                relation_type_true.append(int(label))
-                relation_type_pred.append(int(relation_type_matrix[idx1, idx2]))
             relation_true.extend(relation_type_true)
             relation_pred.extend(relation_type_pred)
 
@@ -385,3 +368,42 @@ class Train:
                                     target_names=relation_target_names))
         print()
         return entity_pred, entity_true, multiword_pred_output, is_related_pred, relation_pred
+
+    def test(self):
+        self.model.eval()
+
+        entity_pred, multiword_pred_output = [], []
+        for sentence in self.dev_X:
+            # Predict
+            entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(sentence)
+
+            len_sentence = entity_probs.shape[1]
+
+            # Entity
+            entity_pred.append([int(w) for w in list(entity_probs[0].argmax(dim=1))])
+
+            # Multiword
+            multiword_array = [int(w) for w in list(multiword_probs[0].argmax(dim=1))]
+            multiword_matrix = np.array(multiword_array).reshape((len_sentence, len_sentence))
+            multiword_pred_output.append(self._get_relation_output(multiword_matrix, 1, len_sentence))
+
+        return entity_pred, multiword_pred_output
+
+    @staticmethod
+    def _get_relation_output(relation_matrix, relation_value, len_sentence):
+        relation_output = []
+        for i in range(len_sentence):
+            for j in range(len_sentence):
+                if relation_matrix[i, j] == relation_value:
+                    relation_output.append((i, j, relation_value))
+        return relation_output
+
+    @staticmethod
+    def _get_relation_eval(relation_ids, relation_matrix):
+        relation_true, relation_pred = [], []
+        for relation in relation_ids:
+            idx1, idx2, label = relation
+            relation_true.append(int(label))
+            relation_pred.append(int(relation_matrix[idx1, idx2]))
+            # relation_output.append((int(idx1), int(idx2), int(relation_matrix[idx1, idx2])))
+        return relation_true, relation_pred
