@@ -9,8 +9,6 @@ import numpy as np
 from sklearn.metrics import classification_report
 import utils
 
-
-
 class Train:
     def __init__(self, model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16,
                  early_stop=5, device='cuda'):
@@ -281,7 +279,7 @@ class Train:
 
         self.model.eval()
 
-        entity_pred, entity_true, is_related_pred, is_related_true, multiword_pred, multiword_pred_output, multiword_true, relation_pred, relation_true = [], [], [], [], [], [], [], [], []
+        entity_pred, entity_true, is_related_pred, is_related_true, multiword_pred, multiword_true, relation_pred, relation_true = [], [], [], [], [], [], [], []
         for sentence, entity_ids, multiword_ids, relation_ids, relation_type_ids in zip(self.dev_X, self.dev_entity,
                                                                                         self.dev_multiword,
                                                                                         self.dev_relation,
@@ -298,11 +296,9 @@ class Train:
             # Multiword
             multiword_array = [int(w) for w in list(multiword_probs[0].argmax(dim=1))]
             multiword_matrix = np.array(multiword_array).reshape((len_sentence, len_sentence))
-            multiword_output = self._get_relation_output(multiword_matrix, 1, len_sentence)
             current_multiword_true, current_multiword_pred = self._get_relation_eval(multiword_ids, multiword_matrix)
             multiword_true.extend(current_multiword_true)
             multiword_pred.extend(current_multiword_pred)
-            multiword_pred_output.append(multiword_output)
 
             # Is Related
             related_array = [int(w) for w in list(related_probs[0].argmax(dim=1))]
@@ -345,12 +341,11 @@ class Train:
         print(classification_report(relation_true, relation_pred, labels=relation_labels,
                                     target_names=relation_target_names))
         print()
-        return entity_pred, entity_true, multiword_pred_output, is_related_pred, relation_pred
 
     def test(self):
         self.model.eval()
 
-        entity_pred, multiword_pred_output = [], []
+        entity_pred, multiword_pred, sameas_pred, relation_pred = [], [], [], []
         for sentence in self.dev_X:
             # Predict
             entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(sentence)
@@ -363,17 +358,27 @@ class Train:
             # Multiword
             multiword_array = [int(w) for w in list(multiword_probs[0].argmax(dim=1))]
             multiword_matrix = np.array(multiword_array).reshape((len_sentence, len_sentence))
-            multiword_pred_output.append(self._get_relation_output(multiword_matrix, 1, len_sentence))
+            multiword_pred.append(self._get_relation_output(multiword_matrix, 1, len_sentence))
 
-        return entity_pred, multiword_pred_output
+            # Same-as
+            sameas_array = [int(w) for w in list(sameas_probs[0].argmax(dim=1))]
+            sameas_matrix = np.array(sameas_array).reshape((len_sentence, len_sentence))
+            sameas_pred.append(self._get_relation_output(sameas_matrix, 1, len_sentence))
+
+            # Relation type
+            relation_array = [int(w) for w in list(related_type_probs[0].argmax(dim=1))]
+            relation_matrix = np.array(relation_array).reshape((len_sentence, len_sentence))
+            relation_pred.append(self._get_relation_output(relation_matrix, 1, len_sentence))
+
+        return entity_pred, multiword_pred, sameas_pred, relation_pred
 
     @staticmethod
     def _get_relation_output(relation_matrix, relation_value, len_sentence):
         relation_output = []
         for i in range(len_sentence):
             for j in range(len_sentence):
-                if relation_matrix[i, j] == relation_value:
-                    relation_output.append((i, j, relation_value))
+                if relation_matrix[i, j] >= relation_value:
+                    relation_output.append((i, j, int(relation_matrix[i, j])))
         return relation_output
 
     @staticmethod

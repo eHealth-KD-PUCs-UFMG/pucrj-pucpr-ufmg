@@ -20,16 +20,16 @@ def get_token_at_position(tokens, index):
     return result
 
 
-def get_multiword_dict(multiword_list):
-    multiword_dict = {}
-    for index_pair in multiword_list:
-        index_from, index_to = index_pair[0], index_pair[1]
+def get_bidirectional_relation_dict(relation_list):
+    relation_dict = {}
+    for index_from, index_to, label in relation_list:
         # inferencer 1
-        if index_from < index_to:
-            value = multiword_dict.get(index_from, [])
+        # discarding reflexive relations
+        if index_from < index_to and label >= 1:
+            value = relation_dict.get(index_from, [])
             value.append(index_to)
-            multiword_dict[index_from] = value
-    return multiword_dict
+            relation_dict[index_from] = value
+    return relation_dict
 
 
 def check_if_list_wholly_contained(list_a, list_b):
@@ -59,26 +59,43 @@ def discard_entities(sentence):
     for key_remove in to_remove:
         sentence.keyphrases.remove(key_remove)
 
-def get_collection(preprocessed_dataset, entity, multiword, sameas, relation, relation_type):
+
+def add_relations(sentence, relation_list, token2entity, relation_id2w):
+    for token_idx1, token_idx2, label_idx in relation_list:
+        if label_idx > 0 and token_idx1 in token2entity and token_idx2 in token2entity:
+            origin, destination = token2entity[token_idx1], token2entity[token_idx2]
+            if origin != destination and sentence.find_keyphrase(id=origin) is not None and sentence.find_keyphrase(
+                    id=destination) is not None:
+                sentence.relations.append(Relation(sentence, origin, destination, relation_id2w[label_idx]))
+
+
+def get_collection(preprocessed_dataset, entity, multiword, sameas, relation):
     c = Collection()
     global_entity_id = 0
-    for row, entity_list, multiword_list in zip(preprocessed_dataset, entity, multiword):
+    for row, entity_list, multiword_list, sameas_list, relation_list in zip(preprocessed_dataset, entity, multiword, sameas, relation):
         if isinstance(multiword_list, torch.Tensor):
+            entity_list = entity_list.detach().cpu().numpy()
             multiword_list = multiword_list.detach().cpu().numpy()
+            sameas_list = sameas_list.detach().cpu().numpy()
+            relation_list = relation_list.detach().cpu().numpy()
         sentence_text = row['text']
         sentence = Sentence(sentence_text)
         tokens = row['tokens']
         # print(tokens)
         # print(entity_list)
-        multiword_dict = get_multiword_dict(multiword_list)
+        # print(multiword_list)
+        multiword_dict = get_bidirectional_relation_dict(multiword_list)
         # print(multiword_dict)
         last_pos = 0
+        token_index_to_entity_id = {}
         for index, entity_id in enumerate(entity_list):
+            entity_index_list = []
             if utils.entity_id2w[entity_id] != 'O' and check_valid_token(tokens[index]):
                 cur_token = get_token_at_position(tokens, index)
                 start = last_pos + sentence_text[last_pos:].find(cur_token)
                 end = start + len(cur_token)
                 span_list = [(start, end)]
+                entity_index_list.append(index)
                 # print(cur_token)
                 if index in multiword_dict:
                     for idx in multiword_dict[index]:
@@ -87,16 +104,24 @@ def get_collection(preprocessed_dataset, entity, multiword, sameas, relation, re
                             start = last_pos + sentence_text[last_pos:].find(mw_token)
                             end = start + len(mw_token)
                             span_list.append((start, end))
+                            entity_index_list.append(idx)
                 # print(sentence_text[last_pos:])
 
                 keyphrase = Keyphrase(sentence, utils.entity_id2w[entity_id], global_entity_id,
                                       span_list)
+
+                for entity_index in entity_index_list:
+                    token_index_to_entity_id[entity_index] = global_entity_id
+
                 # print(keyphrase)
                 global_entity_id += 1
                 sentence.keyphrases.append(keyphrase)
             if tokens[index] != '[CLS]' and tokens[index] != '[SEP]':
                 last_pos += len(tokens[index].replace('##', ''))
         discard_entities(sentence)
+
+        add_relations(sentence, sameas_list, token_index_to_entity_id, {1: 'same-as'})
+        add_relations(sentence, relation_list, token_index_to_entity_id, utils.relation_id2w)
 
         c.sentences.append(sentence)
     return c
