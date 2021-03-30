@@ -7,30 +7,8 @@ from torch import optim
 from model import Vicomtech
 import numpy as np
 from sklearn.metrics import classification_report
+import utils
 
-
-ENTITIES = ["O", "Concept", "Action", "Predicate", "Reference"]
-
-RELATIONS = [
-    "O",
-    "is-a",
-    "part-of",
-    "has-property",
-    "causes",
-    "entails",
-    "in-context",
-    "in-place",
-    "in-time",
-    "subject",
-    "target",
-    "domain",
-    "arg",
-]
-
-entity_w2id = {w: i for i, w in enumerate(ENTITIES)}
-entity_id2w = {i: w for i, w in enumerate(ENTITIES)}
-relation_w2id = {w: i for i, w in enumerate(RELATIONS)}
-relation_id2w = {i: w for i, w in enumerate(RELATIONS)}
 
 
 class Train:
@@ -71,7 +49,7 @@ class Train:
                     idxs = keyphrase['idxs']
 
                     # mark only first subword with entity type
-                    label_idx = entity_w2id[keyphrase['label']]
+                    label_idx = utils.entity_w2id[keyphrase['label']]
                     for idx in idxs:
                         if not tokens[idx].startswith('##'):
                             entity[idx] = label_idx
@@ -115,7 +93,7 @@ class Train:
                         sameas.append((arg2_idx0, arg1_idx0, 1))
                     else:
                         relation.append((arg1_idx0, arg2_idx0, 1))
-                        relation_type.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
+                        relation_type.append((arg1_idx0, arg2_idx0, utils.relation_w2id[label]))
                         # negative same-as relation
                         sameas.append((arg1_idx0, arg2_idx0, 0))
                         sameas.append((arg2_idx0, arg1_idx0, 0))
@@ -346,8 +324,8 @@ class Train:
             relation_true.extend(relation_type_true)
             relation_pred.extend(relation_type_pred)
 
-        entity_labels = list(range(1, len(ENTITIES)))
-        entity_target_names = ENTITIES[1:]
+        entity_labels = list(range(1, len(utils.ENTITIES)))
+        entity_target_names = utils.ENTITIES[1:]
         print("Entity report:")
         print(classification_report(_get_single_output_id_list(entity_true), _get_single_output_id_list(entity_pred),
                                     labels=entity_labels, target_names=entity_target_names))
@@ -361,8 +339,8 @@ class Train:
         print(classification_report(is_related_true, is_related_pred))
         print()
 
-        relation_labels = list(range(1, len(RELATIONS)))
-        relation_target_names = RELATIONS[1:]
+        relation_labels = list(range(1, len(utils.RELATIONS)))
+        relation_target_names = utils.RELATIONS[1:]
         print("Relation type report")
         print(classification_report(relation_true, relation_pred, labels=relation_labels,
                                     target_names=relation_target_names))
