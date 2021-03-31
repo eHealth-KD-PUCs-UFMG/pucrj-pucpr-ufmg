@@ -64,14 +64,12 @@ class Train:
                         for idx_ in range(idx, end):
                             if idx_ not in idxs:
                                 multiword.append((idx, idx_, 0))
-                    # - negative examples between first idx and its neighboor antecedent
-                    start = idxs[0]
-                    if start > 0:
-                        multiword.append((start - 1, start, 0))
-                    # - negative examples between last idx and its neighboor successor
-                    end = idxs[-1]
-                    if end + 1 < len(idxs):
-                        multiword.append((end, end + 1, 0))
+                    # - negative examples between first idx and its 3 neighboor antecedents
+                    for start in range(max(0, idxs[0]-3), idxs[0])
+                        multiword.append((start, idxs[0], 0))
+                    # - negative examples between last idx and its 3 neighboor successor
+                    for end in range(idxs[-1]+1, min(idxs[-1]+3, len(tokens)))
+                        multiword.append((idxs[-1], end, 0))
                 except:
                     pass
 
