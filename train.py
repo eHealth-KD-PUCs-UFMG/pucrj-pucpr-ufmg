@@ -270,8 +270,8 @@ class Train:
                         epoch, batch_idx + 1, len(self.train_X),
                                100. * batch_idx / len(self.train_X), float(loss), round(sum(losses) / len(losses), 5)))
         
-        # evaluating
-        self.eval()
+            # evaluating
+            self.eval()
 
     def eval(self):
         def _get_single_output_id_list(y):
