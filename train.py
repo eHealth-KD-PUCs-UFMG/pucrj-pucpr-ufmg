@@ -226,9 +226,8 @@ class Train:
         return loss
 
     def train(self):
-        self.model.train()
-
         for epoch in range(self.epochs):
+            self.model.train()
             losses = []
             batch_X, batch_entity, batch_multiword, batch_sameas, batch_relation, batch_relation_type = [], [], [], [], [], []
 
@@ -278,7 +277,7 @@ class Train:
         def _get_single_output_id_list(y):
             return [index for indexes in y for index in indexes]
 
-        # self.model.eval()
+        self.model.eval()
 
         entity_pred, entity_true, is_related_pred, is_related_true, multiword_pred, multiword_true, relation_pred, relation_true = [], [], [], [], [], [], [], []
         for sentence, entity_ids, multiword_ids, relation_ids, relation_type_ids in zip(self.dev_X, self.dev_entity,
