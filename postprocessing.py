@@ -59,6 +59,22 @@ def discard_entities(sentence):
     for key_remove in to_remove:
         sentence.keyphrases.remove(key_remove)
 
+def check_tuple_in_list(relation_tuple, related_list):
+    idx1, idx2, label = relation_tuple
+    if label <= 0:
+        return False
+    for related_idx1, related_idx2, related_label in related_list:
+        if related_label >= 1 and idx1 == related_idx1 and idx2 == related_idx2:
+            return True
+    return False
+
+def filter_relations_using_related(relation_type_list, related_list):
+    result = []
+    for relation_tuple in relation_type_list:
+        if check_tuple_in_list(relation_tuple, related_list):
+            result.append(relation_tuple)
+    return result
+
 
 def add_relations(sentence, relation_list, token2entity, relation_id2w):
     for token_idx1, token_idx2, label_idx in relation_list:
@@ -69,15 +85,16 @@ def add_relations(sentence, relation_list, token2entity, relation_id2w):
                 sentence.relations.append(Relation(sentence, origin, destination, relation_id2w[label_idx]))
 
 
-def get_collection(preprocessed_dataset, entity, multiword, sameas, relation):
+def get_collection(preprocessed_dataset, entity, multiword, sameas, related, relation_type):
     c = Collection()
     global_entity_id = 0
-    for row, entity_list, multiword_list, sameas_list, relation_list in zip(preprocessed_dataset, entity, multiword, sameas, relation):
+    for row, entity_list, multiword_list, sameas_list, related_list, relation_type_list in zip(preprocessed_dataset, entity, multiword, sameas, related, relation_type):
         if isinstance(multiword_list, torch.Tensor):
             entity_list = entity_list.detach().cpu().numpy()
             multiword_list = multiword_list.detach().cpu().numpy()
             sameas_list = sameas_list.detach().cpu().numpy()
-            relation_list = relation_list.detach().cpu().numpy()
+            related_list = related_list.detach().cpu().numpy()
+            relation_type_list = relation_type_list.detach().cpu().numpy()
         sentence_text = row['text']
         sentence = Sentence(sentence_text)
         tokens = row['tokens']
@@ -85,6 +102,7 @@ def get_collection(preprocessed_dataset, entity, multiword, sameas, relation):
         # print(entity_list)
         # print(multiword_list)
         multiword_dict = get_bidirectional_relation_dict(multiword_list)
+        relation_type_list = filter_relations_using_related(relation_type_list, related_list)
         # print(multiword_dict)
         last_pos = 0
         token_index_to_entity_id = {}
@@ -121,7 +139,7 @@ def get_collection(preprocessed_dataset, entity, multiword, sameas, relation):
         discard_entities(sentence)
 
         add_relations(sentence, sameas_list, token_index_to_entity_id, {1: 'same-as'})
-        add_relations(sentence, relation_list, token_index_to_entity_id, utils.relation_id2w)
+        add_relations(sentence, relation_type_list, token_index_to_entity_id, utils.relation_id2w)
 
         c.sentences.append(sentence)
     return c

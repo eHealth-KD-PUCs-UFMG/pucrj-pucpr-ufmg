@@ -345,7 +345,7 @@ class Train:
     def test(self):
         self.model.eval()
 
-        entity_pred, multiword_pred, sameas_pred, relation_pred = [], [], [], []
+        entity_pred, multiword_pred, sameas_pred, related_pred, relation_type_pred = [], [], [], [], []
         for sentence in self.dev_X:
             # Predict
             entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(sentence)
@@ -365,12 +365,17 @@ class Train:
             sameas_matrix = np.array(sameas_array).reshape((len_sentence, len_sentence))
             sameas_pred.append(self._get_relation_output(sameas_matrix, 1, len_sentence))
 
+            # Related
+            related_array = [int(w) for w in list(related_probs[0].argmax(dim=1))]
+            related_matrix = np.array(related_array).reshape((len_sentence, len_sentence))
+            related_pred.append(self._get_relation_output(related_matrix, 1, len_sentence))
+
             # Relation type
             relation_array = [int(w) for w in list(related_type_probs[0].argmax(dim=1))]
             relation_matrix = np.array(relation_array).reshape((len_sentence, len_sentence))
-            relation_pred.append(self._get_relation_output(relation_matrix, 1, len_sentence))
+            relation_type_pred.append(self._get_relation_output(relation_matrix, 1, len_sentence))
 
-        return entity_pred, multiword_pred, sameas_pred, relation_pred
+        return entity_pred, multiword_pred, sameas_pred, related_pred, relation_type_pred
 
     @staticmethod
     def _get_relation_output(relation_matrix, relation_value, len_sentence):
