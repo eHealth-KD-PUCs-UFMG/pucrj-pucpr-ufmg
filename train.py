@@ -270,12 +270,15 @@ class Train:
                     print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTotal Loss: {:.6f}'.format(
                         epoch, batch_idx + 1, len(self.train_X),
                                100. * batch_idx / len(self.train_X), float(loss), round(sum(losses) / len(losses), 5)))
+        
+        # evaluating
+        self.eval()
 
     def eval(self):
         def _get_single_output_id_list(y):
             return [index for indexes in y for index in indexes]
 
-        self.model.eval()
+        # self.model.eval()
 
         entity_pred, entity_true, is_related_pred, is_related_true, multiword_pred, multiword_true, relation_pred, relation_true = [], [], [], [], [], [], [], []
         for sentence, entity_ids, multiword_ids, relation_ids, relation_type_ids in zip(self.dev_X, self.dev_entity,
