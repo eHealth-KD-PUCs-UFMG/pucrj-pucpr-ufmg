@@ -6,12 +6,13 @@ import json
 import os
 import numpy as np
 
+
 def extract_keyphrases(keyphrases, text, tokens):
     tags = {}
     for keyphrase in sorted(keyphrases, key=lambda x: len(x.text)):
         ktext = keyphrase.text
         ktokens = [text[s[0]:s[1]] for s in keyphrase.spans]
-        
+
         is_found, spans = False, []
         idxs, ponteiro, cmp_token, cmp_idxs = [], 0, [], []
         for i, token in enumerate(tokens):
@@ -33,11 +34,11 @@ def extract_keyphrases(keyphrases, text, tokens):
             else:
                 idxs = []
                 cmp_token, cmp_idxs = [], []
-            
+
             if ponteiro == len(ktokens):
                 is_found = True
                 break
-                  
+
         tags[keyphrase.id] = {
             'text': ktext,
             'idxs': idxs,
@@ -50,16 +51,8 @@ def extract_keyphrases(keyphrases, text, tokens):
         }
     return tags
 
-def run():
-    path = 'dccuchile/bert-base-spanish-wwm-cased'
-    tokenizer = AutoTokenizer.from_pretrained(path, do_lower_case=False)
 
-    c = Collection()
-
-    for fname in Path("data/original/training/").rglob("*.txt"):
-        c.load(fname)
-
-    data = []
+def add_data(c, data, tokenizer, ref=None):
     for i, instance in enumerate(c.sentences):
         text = instance.text
         tokens = tokenizer.convert_ids_to_tokens(tokenizer(text)['input_ids'])
@@ -68,44 +61,54 @@ def run():
 
         relations = []
         for relation in instance.relations:
-            relations.append({ 
-            'arg1': relation.origin,
-            'arg2': relation.destination,
-            'label': relation.label 
+            relations.append({
+                'arg1': relation.origin,
+                'arg2': relation.destination,
+                'label': relation.label
             })
 
-        data.append({
-            'text': text,
-            'tokens': tokens,
-            'keyphrases': keyphrases,
-            'relations': relations
-        })
+        data_dict = {'text': text,
+                     'tokens': tokens,
+                     'keyphrases': keyphrases,
+                     'relations': relations
+                     }
+        if ref is not None:
+            data_dict['language'] = ref['language']
+            data_dict['domain'] = ref['domain']
+        data.append(data_dict)
 
-    # Get shuffled data
-    index_list = np.arange(len(data))
-    Random(42).shuffle(index_list)
-    data = np.array(data)
-    sentence_list = np.array(c.sentences)
-    data = data[index_list]
-    sentence_list = sentence_list[index_list]
 
-    # Get train data
-    size = int(len(data)*0.2)
-    trainset, _set = data[size:], data[:size]
-    train_collection, _set_collection = sentence_list[size:], sentence_list[:size]
+def run():
+    with open('config_alignment.json') as f:
+        config_file = json.load(f)
+        tokenizer_path = config_file['tokenizer_path']
+        input_path = config_file['input_path']
+        output_path = config_file['output_path']
+        output_file_name = config_file['output_file_name']
+        is_ref = config_file['is_ref']
 
-    # Get dev and test data
-    size = int(len(_set)*0.5)
-    devset, testset = _set[size:], _set[:size]
-    dev_collection, test_collection = _set_collection[size:], _set_collection[:size]
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, do_lower_case=False)
 
-    if not os.path.exists('data/preprocessed'):
-        os.mkdir('data/preprocessed')
+
+    data = []
+    if is_ref:
+        for fname in Path(input_path).rglob("*.txt"):
+            domain = fname.name.split('.')[0]
+            language = 'spanish'
+            if domain == 'cord':
+                language = 'english'
+            ref = {'language': language, 'domain': domain}
+            c = Collection()
+            c.load(fname)
+            add_data(c, data, tokenizer, ref)
+    else:
+        c = Collection()
+        c.load(Path(input_path + 'output.txt'))
+        add_data(c, data, tokenizer)
+
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
 
     # Create output files
-    json.dump(list(trainset), open('data/preprocessed/trainset.json', 'w'), sort_keys=True, indent=4, separators=(',', ':'))
-    json.dump(list(devset), open('data/preprocessed/devset.json', 'w'), sort_keys=True, indent=4, separators=(',', ':'))
-    json.dump(list(testset), open('data/preprocessed/testset.json', 'w'), sort_keys=True, indent=4, separators=(',', ':'))
-    Collection(list(train_collection)).dump(Path('data/preprocessed/train.txt'))
-    Collection(list(dev_collection)).dump(Path('data/preprocessed/dev.txt'))
-    Collection(list(test_collection)).dump(Path('data/preprocessed/test.txt'))
+    json.dump(data, open(output_path + output_file_name, 'w'), sort_keys=True, indent=4,
+              separators=(',', ':'))

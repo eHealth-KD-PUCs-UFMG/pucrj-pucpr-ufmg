@@ -1,12 +1,13 @@
 # coding: utf8
 
+import sys
 import argparse
 import warnings
 from collections import OrderedDict
 from pathlib import Path
 from typing import List
 
-from utils import Collection, DisjointSet, Sentence
+from anntools import Collection, DisjointSet, Sentence
 
 CORRECT_A = "correct_A"
 INCORRECT_A = "incorrect_A"
@@ -27,6 +28,9 @@ def report(data, verbose):
 
     if verbose:
         for key, value in data.items():
+            if key.startswith("correct"):
+                continue
+
             print(
                 "\n==================={}===================\n".format(
                     key.upper().center(14)
@@ -344,8 +348,53 @@ def find_relation(origin, destination, label, target_relations, target_equivalen
             return relation
     return None
 
+SCENARIOS = {
+    1: ("scenario1-main", False, False),
+    2: ("scenario2-taskA", False, True),
+    3: ("scenario3-taskB", True, False),
+}
 
-def main(gold_input, submit_input, skip_A, skip_B, verbose):
+def main(gold: Path, submit: Path, verbose:bool, scenarios: List[int], runs: List[int], prefix:str):
+    runs_data = {}
+
+    for run in runs:
+        run_data = {}
+
+        if not (submit / f"run{run}").exists():
+            print(f"Run {run} not found!")
+            continue
+
+        for id in scenarios:
+            folder, skipA, skipB = SCENARIOS[id]
+
+            print(f"Scoring scenario {id} on run {run}:\n")
+            run_data[folder.split("-")[0]] = main_scenario(gold / folder / "output.txt", submit / f"run{run}" / folder / "output.txt", skipA, skipB, verbose)
+            print()
+
+        runs_data[f"run{run}"] = run_data
+
+    print()
+    report_main(runs_data, prefix)
+
+
+def report_main(runs_data, prefix):
+    keys = { f"scenario{s}_{metric}":0 for s in [1,2,3] for metric in ["f1", "precision", "recall", "best"] }
+    
+    for run_id, run_data in runs_data.items():
+        for scn_id, scn_data in run_data.items():
+            if scn_data["f1"] <= keys[f"{scn_id}_f1"]:
+                pass
+
+            for metric in scn_data:
+                keys[f"{scn_id}_{metric}"] = scn_data[metric]
+            
+            keys[f"{scn_id}_best"] = run_id
+
+    for k,v in keys.items():
+        print(f"{prefix}{k}:{v}", file=sys.stderr)
+
+
+def main_scenario(gold_input, submit_input, skip_A, skip_B, verbose):
     gold = Collection()
     gold.load(gold_input)
 
@@ -371,15 +420,18 @@ def main(gold_input, submit_input, skip_A, skip_B, verbose):
     for key, value in metrics.items():
         print("{0}: {1:0.4}".format(key, value))
 
-    return data
+    return metrics
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("gold")
-    parser.add_argument("submit")
-    parser.add_argument("--skip-A", action="store_true")
-    parser.add_argument("--skip-B", action="store_true")
+    parser.add_argument("--gold", required=True, type=Path, help="Location of the reference data.")
+    parser.add_argument("--submit", required=True, type=Path, help="Location of the submission.")
+    parser.add_argument("--scenarios", type=int, nargs="+", help="Which scenarios to evaluate.", default=[1,2,3])
+    parser.add_argument("--runs", type=int, nargs="+", help="Which runs to evaluate.", default=[1,2,3])
     parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--prefix", help="Prefix to report scores, e.g., 'training_'...", default="")
+    
     args = parser.parse_args()
-    main(Path(args.gold), Path(args.submit), args.skip_A, args.skip_B, args.verbose)
+    
+    main(Path(args.gold), Path(args.submit), args.verbose, args.scenarios, args.runs, args.prefix)
