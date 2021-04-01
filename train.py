@@ -273,9 +273,13 @@ class Train:
             # evaluating
             self.eval()
 
-    def eval(self):
+    def eval(self, devdata=None):
         def _get_single_output_id_list(y):
             return [index for indexes in y for index in indexes]
+
+        if devdata is not None:
+            self.dev_X, self.dev_entity, self.dev_multiword, self.dev_sameas, self.dev_relation, self.dev_relation_type = self.preprocess(
+                devdata)
 
         self.model.eval()
 
@@ -342,7 +346,12 @@ class Train:
                                     target_names=relation_target_names))
         print()
 
-    def test(self):
+    def test(self, devdata=None):
+
+        if devdata is not None:
+            self.dev_X, self.dev_entity, self.dev_multiword, self.dev_sameas, self.dev_relation, self.dev_relation_type = self.preprocess(
+                devdata)
+
         self.model.eval()
 
         entity_pred, multiword_pred, sameas_pred, related_pred, relation_type_pred = [], [], [], [], []
