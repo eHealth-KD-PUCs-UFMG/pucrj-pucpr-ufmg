@@ -1,0 +1,6 @@
+{
+  "pretrained_model_path": "bert-base-multilingual-cased",
+  "input_path": "data/original/eval/training/scenario3-taskB/",
+  "output_file_name": "input_multilingual.json",
+  "is_ref": false
+}

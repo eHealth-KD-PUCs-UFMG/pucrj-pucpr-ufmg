@@ -25,9 +25,9 @@ class Classifier(nn.Module):
         
 
 class Vicomtech(nn.Module):
-    def __init__(self, beto_path='dccuchile/bert-base-spanish-wwm-cased', 
-                       hdim=768, edim=5, rdim=13,
-                       distilbert_nlayers=2, distilbert_nheads=2, device='cuda'):
+    def __init__(self, pretrained_model_path='dccuchile/bert-base-spanish-wwm-cased',
+                 hdim=768, edim=5, rdim=13,
+                 distilbert_nlayers=2, distilbert_nheads=2, device='cuda'):
         super(Vicomtech, self).__init__()
         self.hdim = hdim
         self.edim = edim
@@ -35,8 +35,8 @@ class Vicomtech(nn.Module):
         self.device = device
         
         # BETO
-        self.tokenizer = AutoTokenizer.from_pretrained(beto_path, do_lower_case=False)
-        self.beto = AutoModel.from_pretrained(beto_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(pretrained_model_path, do_lower_case=False)
+        self.beto = AutoModel.from_pretrained(pretrained_model_path)
 
         # DistilBERT
         self.distil_layer = nn.Linear(2*(hdim+edim), hdim)

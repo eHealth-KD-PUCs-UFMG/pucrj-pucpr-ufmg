@@ -1,10 +1,8 @@
 from transformers import AutoTokenizer  # Or BertTokenizer
 from data.scripts.anntools import Collection
 from pathlib import Path
-from random import Random
 import json
 import os
-import numpy as np
 
 
 def extract_keyphrases(keyphrases, text, tokens):
@@ -81,13 +79,12 @@ def add_data(c, data, tokenizer, ref=None):
 def run():
     with open('config_alignment.json') as f:
         config_file = json.load(f)
-        tokenizer_path = config_file['tokenizer_path']
+        pretrained_model_path = config_file['pretrained_model_path']
         input_path = config_file['input_path']
-        output_path = config_file['output_path']
         output_file_name = config_file['output_file_name']
         is_ref = config_file['is_ref']
 
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, do_lower_case=False)
+    tokenizer = AutoTokenizer.from_pretrained(pretrained_model_path, do_lower_case=False)
 
 
     data = []
@@ -106,9 +103,6 @@ def run():
         c.load(Path(input_path + 'output.txt'))
         add_data(c, data, tokenizer)
 
-    if not os.path.exists(output_path):
-        os.mkdir(output_path)
-
     # Create output files
-    json.dump(data, open(output_path + output_file_name, 'w'), sort_keys=True, indent=4,
+    json.dump(data, open(input_path + output_file_name, 'w'), sort_keys=True, indent=4,
               separators=(',', ':'))
