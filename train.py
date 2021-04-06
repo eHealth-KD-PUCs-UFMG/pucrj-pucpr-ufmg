@@ -1,17 +1,19 @@
 
-import torch
 import json
 import torch
-import torch.nn as nn
-from torch import optim
-from model import Vicomtech
 import numpy as np
 from sklearn.metrics import classification_report
+import os
+from pathlib import Path
+
 import utils
+import postprocessing
+
 
 class Train:
     def __init__(self, model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16,
-                 early_stop=5, device='cuda'):
+                 early_stop=3, device='cuda', write_path='model.pt', eval_mode='develop',
+                 pretrained_model='multilingual'):
         self.epochs = epochs
         self.batch_size = batch_size
         self.batch_status = batch_status
@@ -24,6 +26,11 @@ class Train:
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
+
+        self.write_path = write_path
+
+        self.eval_mode = eval_mode
+        self.pretrained_model = pretrained_model
 
         self.train_X, self.train_entity, self.train_multiword, self.train_sameas, self.train_relation, self.train_relation_type = self.preprocess(
             traindata)
@@ -65,10 +72,10 @@ class Train:
                             if idx_ not in idxs:
                                 multiword.append((idx, idx_, 0))
                     # - negative examples between first idx and its 3 neighboor antecedents
-                    for start in range(max(0, idxs[0]-3), idxs[0]):
+                    for start in range(max(0, idxs[0] - 3), idxs[0]):
                         multiword.append((start, idxs[0], 0))
                     # - negative examples between last idx and its 3 neighboor successor
-                    for end in range(idxs[-1]+1, min(idxs[-1]+3, len(tokens))):
+                    for end in range(idxs[-1] + 1, min(idxs[-1] + 3, len(tokens))):
                         multiword.append((idxs[-1], end, 0))
                 except:
                     pass
@@ -226,6 +233,8 @@ class Train:
         return loss
 
     def train(self):
+        max_f1_score = self.eval()
+        repeat = 0
         for epoch in range(self.epochs):
             self.model.train()
             losses = []
@@ -269,11 +278,24 @@ class Train:
                     print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTotal Loss: {:.6f}'.format(
                         epoch, batch_idx + 1, len(self.train_X),
                                100. * batch_idx / len(self.train_X), float(loss), round(sum(losses) / len(losses), 5)))
-        
-            # evaluating
-            self.eval()
 
-    def eval(self, devdata=None):
+            # evaluating
+            f1_score = self.eval()
+            print('F1 score:', f1_score)
+            if f1_score > max_f1_score:
+                max_f1_score = f1_score
+                repeat = 0
+
+                print('Saving best model...')
+                torch.save(self.model, self.write_path)
+            else:
+                repeat += 1
+
+            if repeat == self.early_stop:
+                print('Total epochs:', epoch)
+                break
+
+    def eval_class_report(self, devdata=None):
         def _get_single_output_id_list(y):
             return [index for indexes in y for index in indexes]
 
@@ -349,13 +371,14 @@ class Train:
     def test(self, devdata=None):
 
         if devdata is not None:
-            self.dev_X, self.dev_entity, self.dev_multiword, self.dev_sameas, self.dev_relation, self.dev_relation_type = self.preprocess(
-                devdata)
+            test_dev_X, _, _, _, _, _ = self.preprocess(devdata)
+        else:
+            test_dev_X = self.dev_X
 
         self.model.eval()
 
         entity_pred, multiword_pred, sameas_pred, related_pred, relation_type_pred = [], [], [], [], []
-        for sentence in self.dev_X:
+        for sentence in test_dev_X:
             # Predict
             entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(sentence)
 
@@ -385,6 +408,43 @@ class Train:
             relation_type_pred.append(self._get_relation_output(relation_matrix, 1, len_sentence))
 
         return entity_pred, multiword_pred, sameas_pred, related_pred, relation_type_pred
+
+    def eval(self, verbose=False):
+        # mode = training | develop
+        # pretrained_model = beto | multilingual
+
+        devdata_folder = 'data/original/eval/%s/' % self.eval_mode
+        output_folder = 'output/model/%s/' % self.eval_mode
+        scenario_folder_list = ['scenario1-main/', 'scenario2-taskA/', 'scenario3-taskB/']
+        for scenario_folder in scenario_folder_list:
+            devdata_path = devdata_folder + scenario_folder + 'input_%s.json' % self.pretrained_model
+            devdata = json.load(open(devdata_path))
+            entity_pred, multiword_pred, sameas_pred, related_pred, relation_pred = self.test(devdata)
+
+            output_path = '%s/run1/%s/' % (output_folder, scenario_folder)
+            if not os.path.exists(output_path):
+                os.makedirs(output_path)
+
+            c = postprocessing.get_collection(devdata, entity_pred, multiword_pred, sameas_pred, related_pred,
+                                              relation_pred)
+            output_file_name = output_path + 'output.txt'
+            c.dump(Path(output_file_name))
+        if verbose:
+            os.system("python data/scripts/score.py --gold %s --submit %s --verbose > result.txt" % (
+            devdata_folder, output_folder))
+        else:
+            os.system(
+                "python data/scripts/score.py --gold %s --submit %s > result.txt" % (devdata_folder, output_folder))
+        f1_score = 0.0
+        with open('result.txt', 'r') as f:
+            print('Evaluation:')
+            print(f.read())
+        with open('result.txt', 'r') as f:
+            for line in f:
+                if line.startswith("f1:"):
+                    f1_score = float(line.split(':')[-1].strip())
+                    break
+        return f1_score
 
     @staticmethod
     def _get_relation_output(relation_matrix, relation_value, len_sentence):
