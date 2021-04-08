@@ -292,7 +292,7 @@ class Train:
                 repeat += 1
 
             if repeat == self.early_stop:
-                print('Total epochs:', epoch)
+                print('Total epochs:', (epoch + 1))
                 break
 
     def eval_class_report(self, devdata=None):
