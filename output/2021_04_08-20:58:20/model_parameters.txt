@@ -1,0 +1,4 @@
+Dataset = dev
+Max epochs = 20
+Early stop = 5
+Pretrained model = Multilingual

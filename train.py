@@ -409,7 +409,7 @@ class Train:
 
         return entity_pred, multiword_pred, sameas_pred, related_pred, relation_type_pred
 
-    def eval(self, verbose=False):
+    def eval(self, result_file_name='result.txt', verbose=False, scenario=None):
         # mode = training | develop
         # pretrained_model = beto | multilingual
 
@@ -429,17 +429,18 @@ class Train:
                                               relation_pred)
             output_file_name = output_path + 'output.txt'
             c.dump(Path(output_file_name))
+        command_text = "python data/scripts/score.py --gold {0} --submit {1}".format(devdata_folder, output_folder)
         if verbose:
-            os.system("python data/scripts/score.py --gold %s --submit %s --verbose > result.txt" % (
-            devdata_folder, output_folder))
-        else:
-            os.system(
-                "python data/scripts/score.py --gold %s --submit %s > result.txt" % (devdata_folder, output_folder))
+            command_text += " --verbose"
+        if scenario is not None:
+            command_text += " --scenarios {0}".format(scenario)
+        command_text += " > {0}".format(result_file_name)
+        os.system(command_text)
         f1_score = 0.0
-        with open('result.txt', 'r') as f:
+        with open(result_file_name, 'r') as f:
             print('Evaluation:')
             print(f.read())
-        with open('result.txt', 'r') as f:
+        with open(result_file_name, 'r') as f:
             for line in f:
                 if line.startswith("f1:"):
                     f1_score = float(line.split(':')[-1].strip())

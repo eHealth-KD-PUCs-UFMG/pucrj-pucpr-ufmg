@@ -1,0 +1,40 @@
+Scoring scenario 1 on run 1:
+
+correct_A: 325
+incorrect_A: 52
+partial_A: 394
+spurious_A: 239
+missing_A: 140
+correct_B: 12
+spurious_B: 135
+missing_B: 839
+--------------------
+recall: 0.3031
+precision: 0.4615
+f1: 0.3659
+
+Scoring scenario 2 on run 1:
+
+correct_A: 325
+incorrect_A: 52
+partial_A: 394
+spurious_A: 239
+missing_A: 140
+--------------------
+recall: 0.573
+precision: 0.5168
+f1: 0.5435
+
+Scoring scenario 3 on run 1:
+
+correct_B: 12
+spurious_B: 135
+missing_B: 839
+--------------------
+recall: 0.0141
+precision: 0.08163
+f1: 0.02405
+
+Run 2 not found!
+Run 3 not found!
+
