@@ -37,6 +37,13 @@ class Train:
         self.dev_X, self.dev_entity, self.dev_multiword, self.dev_sameas, self.dev_relation, self.dev_relation_type = self.preprocess(
             devdata)
 
+    def __str__(self):
+        return "Epochs: {}\nBatch size: {}\nEarly stop: {}\nData: {}\nPretrained model: {}".format(self.epochs,
+                                                                                                   self.batch_size,
+                                                                                                   self.early_stop,
+                                                                                                   self.eval_mode,
+                                                                                                   self.pretrained_model)
+
     def preprocess(self, procset):
         X, y_entity, y_multiword, y_sameas, y_relation, y_relation_type = [], [], [], [], [], []
         for row in procset:
