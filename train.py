@@ -4,6 +4,7 @@ import torch
 import numpy as np
 from sklearn.metrics import classification_report
 import os
+from shutil import copyfile
 from pathlib import Path
 
 import utils
@@ -13,7 +14,7 @@ import postprocessing
 class Train:
     def __init__(self, model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16,
                  early_stop=3, device='cuda', write_path='model.pt', eval_mode='develop',
-                 pretrained_model='multilingual'):
+                 pretrained_model='multilingual', log_path='logs'):
         self.epochs = epochs
         self.batch_size = batch_size
         self.batch_status = batch_status
@@ -28,6 +29,9 @@ class Train:
         self.optimizer = optimizer
 
         self.write_path = write_path
+        self.log_path = log_path
+        if not os.path.exists(log_path):
+            os.mkdir(log_path)
 
         self.eval_mode = eval_mode
         self.pretrained_model = pretrained_model
@@ -36,6 +40,13 @@ class Train:
             traindata)
         self.dev_X, self.dev_entity, self.dev_multiword, self.dev_sameas, self.dev_relation, self.dev_relation_type = self.preprocess(
             devdata)
+
+    def __str__(self):
+        return "Epochs: {}\nBatch size: {}\nEarly stop: {}\nData: {}\nPretrained model: {}".format(self.epochs,
+                                                                                                   self.batch_size,
+                                                                                                   self.early_stop,
+                                                                                                   self.eval_mode,
+                                                                                                   self.pretrained_model)
 
     def preprocess(self, procset):
         X, y_entity, y_multiword, y_sameas, y_relation, y_relation_type = [], [], [], [], [], []
@@ -120,6 +131,70 @@ class Train:
             y_relation_type.append(torch.tensor(relation_type))
         return X, y_entity, y_multiword, y_sameas, y_relation, y_relation_type
 
+    def compute_loss_full(self, entity_probs, batch_entity, multiword_probs, batch_multiword, \
+                    sameas_probs, batch_sameas, related_probs, batch_relation,\
+                    related_type_probs):
+        # entity loss
+        batch, seq_len, dim = entity_probs.size()
+        entity_real = torch.nn.utils.rnn.pad_sequence(batch_entity).transpose(0, 1).to(self.device)
+        entity_loss = self.criterion(entity_probs.view(batch*seq_len, dim), entity_real.reshape(-1))
+
+        # multiword loss
+        batch, seq_len, dim = multiword_probs.size()
+        rowcol_len = int(np.sqrt(seq_len))
+        multiword_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
+        for i in range(batch):
+            rows, columns = batch_multiword[i][:, 0], batch_multiword[i][:, 1]
+            labels = batch_multiword[i][:, 2]
+            multiword_real[i, rows, columns] = labels
+
+        multiword_loss = self.criterion(multiword_probs.view(batch*seq_len, dim), multiword_real.view(-1))
+
+        # sameas loss
+        batch, seq_len, dim = sameas_probs.size()
+        rowcol_len = int(np.sqrt(seq_len))
+        sameas_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
+        for i in range(batch):
+            try:
+                rows, columns = batch_sameas[i][:, 0], batch_sameas[i][:, 1]
+                labels = batch_sameas[i][:, 2]
+                sameas_real[i, rows, columns] = labels
+            except:
+                pass
+
+        sameas_loss = self.criterion(sameas_probs.view(batch*seq_len, dim), sameas_real.view(-1))
+
+        # relation loss
+        batch, seq_len, dim = related_probs.size()
+        rowcol_len = int(np.sqrt(seq_len))
+        relation_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
+        for i in range(batch):
+            try:
+                rows, columns = batch_relation[i][:, 0], batch_relation[i][:, 1]
+                labels = batch_relation[i][:, 2]
+                relation_real[i, rows, columns] = labels
+            except:
+                pass
+
+        relation_loss = self.criterion(related_probs.view(batch*seq_len, dim), relation_real.view(-1))
+
+        # relation type loss
+        batch, seq_len, dim = related_type_probs.size()
+        rowcol_len = int(np.sqrt(seq_len))
+        relation_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
+        for i in range(batch):
+            try:
+                rows, columns = batch_relation[i][:, 0], batch_relation[i][:, 1]
+                labels = batch_relation[i][:, 2]
+                relation_real[i, rows, columns] = labels
+            except:
+                pass
+
+        relation_type_loss = self.criterion(related_type_probs.view(batch*seq_len, dim), relation_real.view(-1))
+
+        loss = entity_loss + multiword_loss + sameas_loss + relation_loss + relation_type_loss
+        return loss
+
     def compute_loss(self, entity_probs, batch_entity, multiword_probs, batch_multiword, \
                      sameas_probs, batch_sameas, related_probs, batch_relation, \
                      related_type_probs, batch_relation_type):
@@ -141,7 +216,7 @@ class Train:
                 labels = batch_multiword[i][:, 2]
                 multiword_real.extend(labels.tolist())
 
-                preds = multiword_probs[i, rows, columns]
+                preds = multiword_probs[i, rows, columns] + multiword_probs[i, columns, rows] # inference
                 multiword_pred.append(preds)
             except:
                 pass
@@ -166,7 +241,7 @@ class Train:
                 labels = batch_sameas[i][:, 2]
                 sameas_real.extend(labels.tolist())
 
-                preds = sameas_probs[i, rows, columns]
+                preds = sameas_probs[i, rows, columns] + sameas_probs[i, columns, rows] # inference
                 sameas_pred.append(preds)
             except:
                 pass
@@ -256,15 +331,15 @@ class Train:
                     entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(batch_X)
 
                     # Calculate loss
-                    loss = self.compute_loss(entity_probs,
+                    loss = self.compute_loss_full(entity_probs,
                                              batch_entity,
                                              multiword_probs,
                                              batch_multiword,
                                              sameas_probs, batch_sameas,
                                              related_probs,
                                              batch_relation,
-                                             related_type_probs,
-                                             batch_relation_type)
+                                             related_type_probs)
+                                            #  batch_relation_type)
                     losses.append(float(loss))
 
                     # Backpropagation
@@ -280,7 +355,8 @@ class Train:
                                100. * batch_idx / len(self.train_X), float(loss), round(sum(losses) / len(losses), 5)))
 
             # evaluating
-            f1_score = self.eval()
+            result_file_name = os.path.join(self.log_path, 'epoch' + str(epoch+1) + '.log'))
+            f1_score = self.eval(result_file_name)
             print('F1 score:', f1_score)
             if f1_score > max_f1_score:
                 max_f1_score = f1_score
@@ -288,6 +364,9 @@ class Train:
 
                 print('Saving best model...')
                 torch.save(self.model, self.write_path)
+                print('Saving best model log...')
+                best_log_path = os.path.join(self.log_path, 'best.log')
+                copyfile(result_file_name, best_log_path)
             else:
                 repeat += 1
 
