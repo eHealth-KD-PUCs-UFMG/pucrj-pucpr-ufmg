@@ -137,7 +137,7 @@ class Train:
         # entity loss
         batch, seq_len, dim = entity_probs.size()
         entity_real = torch.nn.utils.rnn.pad_sequence(batch_entity).transpose(0, 1).to(self.device)
-        entity_loss = self.criterion(entity_probs.view(batch*seq_len, dim), entity_real.reshape(-1))
+        entity_loss = self.criterion(entity_probs.view(batch*seq_len, dim), entity_real.view(-1))
 
         # multiword loss
         batch, seq_len, dim = multiword_probs.size()
@@ -146,7 +146,7 @@ class Train:
         for i in range(batch):
             rows, columns = batch_multiword[i][:, 0], batch_multiword[i][:, 1]
             labels = batch_multiword[i][:, 2]
-            multiword_real[i, rows, columns] = labels
+            multiword_real[i, rows, columns] = labels.to(self.device)
 
         multiword_loss = self.criterion(multiword_probs.view(batch*seq_len, dim), multiword_real.view(-1))
 
@@ -158,7 +158,7 @@ class Train:
             try:
                 rows, columns = batch_sameas[i][:, 0], batch_sameas[i][:, 1]
                 labels = batch_sameas[i][:, 2]
-                sameas_real[i, rows, columns] = labels
+                sameas_real[i, rows, columns] = labels.to(self.device)
             except:
                 pass
 
@@ -172,7 +172,7 @@ class Train:
             try:
                 rows, columns = batch_relation[i][:, 0], batch_relation[i][:, 1]
                 labels = batch_relation[i][:, 2]
-                relation_real[i, rows, columns] = labels
+                relation_real[i, rows, columns] = labels.to(self.device)
             except:
                 pass
 
@@ -186,7 +186,7 @@ class Train:
             try:
                 rows, columns = batch_relation[i][:, 0], batch_relation[i][:, 1]
                 labels = batch_relation[i][:, 2]
-                relation_real[i, rows, columns] = labels
+                relation_real[i, rows, columns] = labels.to(self.device)
             except:
                 pass
 
@@ -355,7 +355,7 @@ class Train:
                                100. * batch_idx / len(self.train_X), float(loss), round(sum(losses) / len(losses), 5)))
 
             # evaluating
-            result_file_name = os.path.join(self.log_path, 'epoch' + str(epoch+1) + '.log'))
+            result_file_name = os.path.join(self.log_path, 'epoch' + str(epoch+1) + '.log')
             f1_score = self.eval(result_file_name)
             print('F1 score:', f1_score)
             if f1_score > max_f1_score:
