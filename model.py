@@ -27,12 +27,13 @@ class Classifier(nn.Module):
 class Vicomtech(nn.Module):
     def __init__(self, pretrained_model_path='dccuchile/bert-base-spanish-wwm-cased',
                  hdim=768, edim=5, rdim=13,
-                 distilbert_nlayers=2, distilbert_nheads=2, device='cuda'):
+                 distilbert_nlayers=2, distilbert_nheads=2, device='cuda', max_length=128):
         super(Vicomtech, self).__init__()
         self.hdim = hdim
         self.edim = edim
         self.rdim = rdim
         self.device = device
+        self.max_length = max_length
         
         # BETO
         self.tokenizer = AutoTokenizer.from_pretrained(pretrained_model_path, do_lower_case=False)
@@ -58,7 +59,7 @@ class Vicomtech(nn.Module):
 
     def forward(self, texts):
         # part 1
-        tokens = self.tokenizer(texts, padding=True, return_tensors="pt").to(self.device)
+        tokens = self.tokenizer(texts, padding=True, truncation=True, max_length=self.max_length, return_tensors="pt").to(self.device)
         embeddings = self.beto(**tokens)['last_hidden_state']
 
         # part 2

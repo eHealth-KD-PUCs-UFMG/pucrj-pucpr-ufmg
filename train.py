@@ -1,6 +1,7 @@
 
 import json
 import torch
+from torch.utils.data import DataLoader, Dataset
 import numpy as np
 from sklearn.metrics import classification_report
 import os
@@ -10,6 +11,19 @@ from pathlib import Path
 import utils
 import postprocessing
 
+class ProcDataset(Dataset):
+    def __init__(self, data):
+        """
+        Args:
+            data (string): data
+        """
+        self.data = data
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return self.data[idx]
 
 class Train:
     def __init__(self, model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16,
@@ -36,10 +50,8 @@ class Train:
         self.eval_mode = eval_mode
         self.pretrained_model = pretrained_model
 
-        self.train_X, self.train_entity, self.train_multiword, self.train_sameas, self.train_relation, self.train_relation_type = self.preprocess(
-            traindata)
-        self.dev_X, self.dev_entity, self.dev_multiword, self.dev_sameas, self.dev_relation, self.dev_relation_type = self.preprocess(
-            devdata)
+        self.traindata = DataLoader(self.preprocess(traindata), batch_size=batch_size, shuffle=True)
+        self.devdata = DataLoader(self.preprocess(devdata), batch_size=batch_size, shuffle=True)
 
     def __str__(self):
         return "Epochs: {}\nBatch size: {}\nEarly stop: {}\nData: {}\nPretrained model: {}".format(self.epochs,
@@ -49,7 +61,7 @@ class Train:
                                                                                                    self.pretrained_model)
 
     def preprocess(self, procset):
-        X, y_entity, y_multiword, y_sameas, y_relation, y_relation_type = [], [], [], [], [], []
+        inputs = []
         for row in procset:
             text = row['text']
             tokens = row['tokens']
@@ -77,17 +89,10 @@ class Train:
                     # negative examples (before first idx, after last ids,)
                     # - negative examples surrounding first and last idxs
                     idxs = sorted(idxs)
-                    end = idxs[-1]
                     for idx in idxs:
-                        for idx_ in range(idx, end):
-                            if idx_ not in idxs:
+                        for idx_ in range(size):
+                            if idx_ not in idxs and entity[idx_] > 0:
                                 multiword.append((idx, idx_, 0))
-                    # - negative examples between first idx and its 3 neighboor antecedents
-                    for start in range(max(0, idxs[0] - 3), idxs[0]):
-                        multiword.append((start, idxs[0], 0))
-                    # - negative examples between last idx and its 3 neighboor successor
-                    for end in range(idxs[-1] + 1, min(idxs[-1] + 3, len(tokens))):
-                        multiword.append((idxs[-1], end, 0))
                 except:
                     pass
 
@@ -122,14 +127,20 @@ class Train:
                     f = [w for w in relation if w[0] == arg1_idx0 and w[1] == arg2_idx0]
                     if len(f) == 0:
                         relation.append((arg1_idx0, arg2_idx0, 0))
+                    
+                    f = [w for w in relation if w[0] == arg2_idx0 and w[1] == arg1_idx0]
+                    if len(f) == 0:
+                        relation.append((arg2_idx0, arg1_idx0, 0))
 
-            X.append(text)
-            y_entity.append(torch.tensor(entity))
-            y_multiword.append(torch.tensor(multiword))
-            y_sameas.append(torch.tensor(sameas))
-            y_relation.append(torch.tensor(relation))
-            y_relation_type.append(torch.tensor(relation_type))
-        return X, y_entity, y_multiword, y_sameas, y_relation, y_relation_type
+            inputs.append({
+                'X': text,
+                'entity': entity,
+                'multiword': multiword,
+                'sameas': sameas,
+                'relation': relation,
+                'relation_type': relation_type
+            })
+        return ProcDataset(inputs)
 
     def compute_loss_full(self, entity_probs, batch_entity, multiword_probs, batch_multiword, \
                     sameas_probs, batch_sameas, related_probs, batch_relation,\
@@ -315,44 +326,39 @@ class Train:
             losses = []
             batch_X, batch_entity, batch_multiword, batch_sameas, batch_relation, batch_relation_type = [], [], [], [], [], []
 
-            for batch_idx, inp in enumerate(self.train_X):
-                batch_X.append(self.train_X[batch_idx])
-                batch_entity.append(self.train_entity[batch_idx])
-                batch_multiword.append(self.train_multiword[batch_idx])
-                batch_sameas.append(self.train_sameas[batch_idx])
-                batch_relation.append(self.train_relation[batch_idx])
-                batch_relation_type.append(self.train_relation_type[batch_idx])
+            for batch_idx, inp in enumerate(self.traindata):                
+                batch_X = inp['X']
+                # Predict
+                entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(batch_X)
 
-                if (batch_idx + 1) % self.batch_size == 0:
-                    # Init
-                    self.optimizer.zero_grad()
+                self.optimizer.zero_grad()
 
-                    # Predict
-                    entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(batch_X)
+                # Calculate loss
+                batch_entity = inp['entity'] 
+                batch_multiword = inp['multiword'] 
+                batch_sameas = inp['sameas']
+                batch_relation = inp['relation']
+                batch_relation_type  = inp['relation_type']
+                loss = self.compute_loss(entity_probs,
+                                        batch_entity,
+                                        multiword_probs,
+                                        batch_multiword,
+                                        sameas_probs, batch_sameas,
+                                        related_probs,
+                                        batch_relation,
+                                        related_type_probs,
+                                        batch_relation_type)
+                losses.append(float(loss))
 
-                    # Calculate loss
-                    loss = self.compute_loss_full(entity_probs,
-                                             batch_entity,
-                                             multiword_probs,
-                                             batch_multiword,
-                                             sameas_probs, batch_sameas,
-                                             related_probs,
-                                             batch_relation,
-                                             related_type_probs)
-                                            #  batch_relation_type)
-                    losses.append(float(loss))
-
-                    # Backpropagation
-                    loss.backward()
-                    self.optimizer.step()
-
-                    batch_X, batch_entity, batch_multiword, batch_sameas, batch_relation, batch_relation_type = [], [], [], [], [], []
+                # Backpropagation
+                loss.backward()
+                self.optimizer.step()
 
                 # Display
                 if (batch_idx + 1) % self.batch_status == 0:
                     print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTotal Loss: {:.6f}'.format(
-                        epoch, batch_idx + 1, len(self.train_X),
-                               100. * batch_idx / len(self.train_X), float(loss), round(sum(losses) / len(losses), 5)))
+                        epoch, batch_idx + 1, len(self.traindata),
+                               100. * batch_idx / len(self.traindata), float(loss), round(sum(losses) / len(losses), 5)))
 
             # evaluating
             result_file_name = os.path.join(self.log_path, 'epoch' + str(epoch+1) + '.log')
@@ -379,16 +385,18 @@ class Train:
             return [index for indexes in y for index in indexes]
 
         if devdata is not None:
-            self.dev_X, self.dev_entity, self.dev_multiword, self.dev_sameas, self.dev_relation, self.dev_relation_type = self.preprocess(
-                devdata)
+            self.devdata = DataLoader(self.preprocess(devdata), batch_size=self.batch_size, shuffle=True)
 
         self.model.eval()
 
         entity_pred, entity_true, is_related_pred, is_related_true, multiword_pred, multiword_true, relation_pred, relation_true = [], [], [], [], [], [], [], []
-        for sentence, entity_ids, multiword_ids, relation_ids, relation_type_ids in zip(self.dev_X, self.dev_entity,
-                                                                                        self.dev_multiword,
-                                                                                        self.dev_relation,
-                                                                                        self.dev_relation_type):
+        for inp in self.devdata:
+            sentence = inp['X']
+            entity_ids = inp['entity'] 
+            multiword_ids = inp['multiword'] 
+            relation_ids = inp['relation']
+            relation_type_ids  = inp['relation_type']
+            
             # Predict
             entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(sentence)
 
@@ -450,16 +458,16 @@ class Train:
     def test(self, devdata=None):
 
         if devdata is not None:
-            test_dev_X, _, _, _, _, _ = self.preprocess(devdata)
+            test_dev_X = self.preprocess(devdata)
         else:
-            test_dev_X = self.dev_X
+            test_dev_X = self.devdata
 
         self.model.eval()
 
         entity_pred, multiword_pred, sameas_pred, related_pred, relation_type_pred = [], [], [], [], []
         for sentence in test_dev_X:
             # Predict
-            entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(sentence)
+            entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(sentence['X'])
 
             len_sentence = entity_probs.shape[1]
 
@@ -498,6 +506,7 @@ class Train:
         for scenario_folder in scenario_folder_list:
             devdata_path = devdata_folder + scenario_folder + 'input_%s.json' % self.pretrained_model
             devdata = json.load(open(devdata_path))
+            # devdata = DataLoader(self.preprocess(devdata), batch_size=self.batch_size, shuffle=True)
             entity_pred, multiword_pred, sameas_pred, related_pred, relation_pred = self.test(devdata)
 
             output_path = '%s/run1/%s/' % (output_folder, scenario_folder)
@@ -508,7 +517,7 @@ class Train:
                                               relation_pred)
             output_file_name = output_path + 'output.txt'
             c.dump(Path(output_file_name))
-        command_text = "python data/scripts/score.py --gold {0} --submit {1}".format(devdata_folder, output_folder)
+        command_text = "python3 data/scripts/score.py --gold {0} --submit {1}".format(devdata_folder, output_folder)
         if verbose:
             command_text += " --verbose"
         if scenario is not None:
