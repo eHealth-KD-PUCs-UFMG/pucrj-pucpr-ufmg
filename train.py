@@ -62,6 +62,7 @@ class Train:
 
     def preprocess(self, procset):
         inputs = []
+        nrelations = 0
         for row in procset:
             text = row['text']
             tokens = row['tokens']
@@ -93,6 +94,7 @@ class Train:
                         for idx_ in range(size):
                             if idx_ not in idxs and entity[idx_] > 0:
                                 multiword.append((idx, idx_, 0))
+                                multiword.append((idx_, idx, 0))
                 except:
                     pass
 
@@ -127,10 +129,12 @@ class Train:
                     f = [w for w in relation if w[0] == arg1_idx0 and w[1] == arg2_idx0]
                     if len(f) == 0:
                         relation.append((arg1_idx0, arg2_idx0, 0))
+                        nrelations += 1
                     
                     f = [w for w in relation if w[0] == arg2_idx0 and w[1] == arg1_idx0]
                     if len(f) == 0:
                         relation.append((arg2_idx0, arg1_idx0, 0))
+                        nrelations += 1
 
             inputs.append({
                 'X': text,
@@ -319,7 +323,8 @@ class Train:
         return loss
 
     def train(self):
-        max_f1_score = self.eval()
+        # max_f1_score = self.eval()
+        max_f1_score = 0
         repeat = 0
         for epoch in range(self.epochs):
             self.model.train()
@@ -334,11 +339,11 @@ class Train:
                 self.optimizer.zero_grad()
 
                 # Calculate loss
-                batch_entity = inp['entity'] 
-                batch_multiword = inp['multiword'] 
-                batch_sameas = inp['sameas']
-                batch_relation = inp['relation']
-                batch_relation_type  = inp['relation_type']
+                batch_entity = torch.tensor([inp['entity']])
+                batch_multiword = torch.tensor([inp['multiword']])
+                batch_sameas = torch.tensor([inp['sameas']])
+                batch_relation = torch.tensor([inp['relation']])
+                batch_relation_type  = torch.tensor([inp['relation_type']])
                 loss = self.compute_loss(entity_probs,
                                         batch_entity,
                                         multiword_probs,
@@ -361,6 +366,7 @@ class Train:
                                100. * batch_idx / len(self.traindata), float(loss), round(sum(losses) / len(losses), 5)))
 
             # evaluating
+            self.eval_class_report()
             result_file_name = os.path.join(self.log_path, 'epoch' + str(epoch+1) + '.log')
             f1_score = self.eval(result_file_name)
             print('F1 score:', f1_score)

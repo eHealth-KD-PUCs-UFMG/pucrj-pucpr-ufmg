@@ -21,7 +21,7 @@ class Classifier(nn.Module):
         x = self.dropout(x)
         x = x * self.tanh(self.softplus(x))
         x = self.linear2(x)
-        return self.softmax(x)
+        return x, self.softmax(x)
         
 
 class Vicomtech(nn.Module):
@@ -63,10 +63,10 @@ class Vicomtech(nn.Module):
         embeddings = self.beto(**tokens)['last_hidden_state']
 
         # part 2
-        entity = self.entity_classifier(embeddings)
+        logits, entity = self.entity_classifier(embeddings)
 
         # part 23
-        embeddings_entity = torch.cat([embeddings, entity], 2)
+        embeddings_entity = torch.cat([embeddings, logits], 2)
 
         # part 3 (TRY TO IMPROVE VECTORIZATION)
         batch, seq_len, dim = embeddings_entity.size()
@@ -83,16 +83,16 @@ class Vicomtech(nn.Module):
         ssd = self.distilbert(inputs_embeds=inp_distilbert)['last_hidden_state']
 
         # part 5
-        multiword = self.multiword_classifier(ssd)
+        _, multiword = self.multiword_classifier(ssd)
         # part 6
-        sameas = self.sameas_classifier(ssd)
+        _, sameas = self.sameas_classifier(ssd)
         # part 7
-        related = self.related_classifier(ssd)
+        logits, related = self.related_classifier(ssd)
 
         # part 8
-        incoming_outgoing = torch.cat([ssd, related], 2)
+        incoming_outgoing = torch.cat([ssd, logits], 2)
         # part 9
-        related_type = self.relation_type_classifier(incoming_outgoing)
+        _, related_type = self.relation_type_classifier(incoming_outgoing)
 
         return entity, multiword, sameas, related, related_type
 
