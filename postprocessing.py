@@ -1,8 +1,6 @@
 from data.scripts.anntools import Collection, Sentence, Keyphrase, Relation
-from pathlib import Path
-import time
 import torch
-import utils
+from utils import relation_id2w, relation_w2id, entity_id2w, entity_w2id
 
 
 def check_valid_token(cur_token):
@@ -18,18 +16,6 @@ def get_token_at_position(tokens, index):
         result += tokens[i].replace('##', '')
         i += 1
     return result
-
-
-def get_bidirectional_relation_dict(relation_list):
-    relation_dict = {}
-    for index_from, index_to, label in relation_list:
-        # inferencer 1
-        # discarding reflexive relations
-        if index_from < index_to and label >= 1:
-            value = relation_dict.get(index_from, [])
-            value.append(index_to)
-            relation_dict[index_from] = value
-    return relation_dict
 
 
 def check_if_list_wholly_contained(list_a, list_b):
@@ -84,15 +70,18 @@ def add_relations(sentence, relation_list, token2entity, relation_id2w):
                     id=destination) is not None:
                 sentence.relations.append(Relation(sentence, origin, destination, relation_id2w[label_idx]))
 
+def check_if_contiguous_entity(index, entity_id, entity_list, tokens):
+    return index + 1 < len(entity_list)\
+           and ((entity_id2w[entity_list[index + 1]].strip('-BI') == entity_id2w[entity_id].strip('-BI')
+                and entity_id2w[entity_list[index + 1]].startswith('I-'))
+                or not check_valid_token(tokens[index + 1]))
 
-def get_collection(preprocessed_dataset, entity, multiword, sameas, related, relation_type):
+def get_collection(preprocessed_dataset, entity, related, relation_type):
     c = Collection()
     global_entity_id = 0
-    for row, entity_list, multiword_list, sameas_list, related_list, relation_type_list in zip(preprocessed_dataset, entity, multiword, sameas, related, relation_type):
-        if isinstance(multiword_list, torch.Tensor):
+    for row, entity_list, related_list, relation_type_list in zip(preprocessed_dataset, entity, related, relation_type):
+        if isinstance(entity_list, torch.Tensor):
             entity_list = entity_list.detach().cpu().numpy()
-            multiword_list = multiword_list.detach().cpu().numpy()
-            sameas_list = sameas_list.detach().cpu().numpy()
             related_list = related_list.detach().cpu().numpy()
             relation_type_list = relation_type_list.detach().cpu().numpy()
         sentence_text = row['text']
@@ -101,45 +90,52 @@ def get_collection(preprocessed_dataset, entity, multiword, sameas, related, rel
         # print(tokens)
         # print(entity_list)
         # print(multiword_list)
-        multiword_dict = get_bidirectional_relation_dict(multiword_list)
         relation_type_list = filter_relations_using_related(relation_type_list, related_list)
         # print(multiword_dict)
         last_pos = 0
         token_index_to_entity_id = {}
-        for index, entity_id in enumerate(entity_list):
+        index = 0
+        while index < len(entity_list):
+            # print(tokens[index])
+            entity_id = entity_list[index]
+            # print(entity_id)
             entity_index_list = []
-            if utils.entity_id2w[entity_id] != 'O' and check_valid_token(tokens[index]):
+            if entity_id2w[entity_id] != 'O' and check_valid_token(tokens[index]):
                 cur_token = get_token_at_position(tokens, index)
+                # print('found token: %s' % cur_token)
                 start = last_pos + sentence_text[last_pos:].find(cur_token)
                 end = start + len(cur_token)
                 span_list = [(start, end)]
                 entity_index_list.append(index)
-                # print(cur_token)
-                if index in multiword_dict:
-                    for idx in multiword_dict[index]:
-                        mw_token = get_token_at_position(tokens, idx)
-                        if len(mw_token) > 0:
-                            start = last_pos + sentence_text[last_pos:].find(mw_token)
-                            end = start + len(mw_token)
-                            span_list.append((start, end))
-                            entity_index_list.append(idx)
-                # print(sentence_text[last_pos:])
+                last_pos += len(cur_token)
 
-                keyphrase = Keyphrase(sentence, utils.entity_id2w[entity_id], global_entity_id,
+                while check_if_contiguous_entity(index, entity_id, entity_list, tokens):
+                    index += 1
+                    mw_token = get_token_at_position(tokens, index)
+                    if len(mw_token) > 0:
+                        # print('contiguous entities: %s' % mw_token)
+                        start = last_pos + sentence_text[last_pos:].find(mw_token)
+                        end = start + len(mw_token)
+                        span_list.append((start, end))
+                        entity_index_list.append(index)
+                        last_pos += len(mw_token)
+
+                keyphrase = Keyphrase(sentence, entity_id2w[entity_id].strip('-BI'), global_entity_id,
                                       span_list)
 
+                # print(keyphrase)
                 for entity_index in entity_index_list:
                     token_index_to_entity_id[entity_index] = global_entity_id
 
                 # print(keyphrase)
                 global_entity_id += 1
                 sentence.keyphrases.append(keyphrase)
-            if tokens[index] != '[CLS]' and tokens[index] != '[SEP]':
+            elif tokens[index] != '[CLS]' and tokens[index] != '[SEP]':
                 last_pos += len(tokens[index].replace('##', ''))
+            index += 1
         discard_entities(sentence)
 
-        add_relations(sentence, sameas_list, token_index_to_entity_id, {1: 'same-as'})
-        add_relations(sentence, relation_type_list, token_index_to_entity_id, utils.relation_id2w)
+        add_relations(sentence, relation_type_list, token_index_to_entity_id, relation_id2w)
 
         c.sentences.append(sentence)
     return c
