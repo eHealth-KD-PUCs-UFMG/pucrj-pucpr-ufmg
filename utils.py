@@ -1,4 +1,5 @@
-ENTITIES = ["O", "Concept", "Action", "Predicate", "Reference"]
+ENTITIES = ["O", "B-Concept", "I-Concept", "B-Action", "I-Action", "B-Predicate", "I-Predicate", "B-Reference",
+            "I-Reference"]
 
 RELATIONS = [
     "O",
@@ -14,6 +15,7 @@ RELATIONS = [
     "target",
     "domain",
     "arg",
+    "same-as"
 ]
 
 entity_w2id = {w: i for i, w in enumerate(ENTITIES)}

@@ -8,8 +8,8 @@ import os
 from shutil import copyfile
 from pathlib import Path
 
-import utils
-import postprocessing
+from utils import relation_w2id, entity_w2id, ENTITIES, RELATIONS
+from postprocessing import get_collection
 
 class ProcDataset(Dataset):
     def __init__(self, data):
@@ -69,7 +69,6 @@ class Train:
 
             size = len(tokens)
             entity = size * [0]
-            multiword = []
 
             # entity and multiword gold-standard
             for keyid in row['keyphrases']:
@@ -78,28 +77,21 @@ class Train:
                     idxs = keyphrase['idxs']
 
                     # mark only first subword with entity type
-                    label_idx = utils.entity_w2id[keyphrase['label']]
+                    label_begin_idx = entity_w2id['B-' + keyphrase['label']]
+                    label_internal_idx = entity_w2id['I-' + keyphrase['label']]
+                    first = True
                     for idx in idxs:
                         if not tokens[idx].startswith('##'):
-                            entity[idx] = label_idx
-
-                    # multiword
-                    for idx in idxs:
-                        multiword.extend([(idx, idx_, 1) for idx_ in idxs if idx != idx_])
-
-                    # negative examples (before first idx, after last ids,)
-                    # - negative examples surrounding first and last idxs
-                    idxs = sorted(idxs)
-                    for idx in idxs:
-                        for idx_ in range(size):
-                            if idx_ not in idxs and entity[idx_] > 0:
-                                multiword.append((idx, idx_, 0))
-                                multiword.append((idx_, idx, 0))
+                            if first:
+                                entity[idx] = label_begin_idx
+                                first = False
+                            else:
+                                entity[idx] = label_internal_idx
                 except:
                     pass
 
             # relations gold-standards
-            sameas, relation, relation_type = [], [], []
+            relation, relation_type = [], []
             for relation_ in row['relations']:
                 try:
                     arg1 = relation_['arg1']
@@ -109,15 +101,8 @@ class Train:
                     arg2_idx0 = row['keyphrases'][str(arg2)]['idxs'][0]
 
                     label = relation_['label']
-                    if label == 'same-as':
-                        sameas.append((arg1_idx0, arg2_idx0, 1))
-                        sameas.append((arg2_idx0, arg1_idx0, 1))
-                    else:
-                        relation.append((arg1_idx0, arg2_idx0, 1))
-                        relation_type.append((arg1_idx0, arg2_idx0, utils.relation_w2id[label]))
-                        # negative same-as relation
-                        sameas.append((arg1_idx0, arg2_idx0, 0))
-                        sameas.append((arg2_idx0, arg1_idx0, 0))
+                    relation.append((arg1_idx0, arg2_idx0, 1))
+                    relation_type.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
                 except:
                     pass
 
@@ -139,45 +124,16 @@ class Train:
             inputs.append({
                 'X': text,
                 'entity': entity,
-                'multiword': multiword,
-                'sameas': sameas,
                 'relation': relation,
                 'relation_type': relation_type
             })
         return ProcDataset(inputs)
 
-    def compute_loss_full(self, entity_probs, batch_entity, multiword_probs, batch_multiword, \
-                    sameas_probs, batch_sameas, related_probs, batch_relation,\
-                    related_type_probs):
+    def compute_loss_full(self, entity_probs, batch_entity, related_probs, batch_relation, related_type_probs):
         # entity loss
         batch, seq_len, dim = entity_probs.size()
         entity_real = torch.nn.utils.rnn.pad_sequence(batch_entity).transpose(0, 1).to(self.device)
         entity_loss = self.criterion(entity_probs.view(batch*seq_len, dim), entity_real.view(-1))
-
-        # multiword loss
-        batch, seq_len, dim = multiword_probs.size()
-        rowcol_len = int(np.sqrt(seq_len))
-        multiword_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
-        for i in range(batch):
-            rows, columns = batch_multiword[i][:, 0], batch_multiword[i][:, 1]
-            labels = batch_multiword[i][:, 2]
-            multiword_real[i, rows, columns] = labels.to(self.device)
-
-        multiword_loss = self.criterion(multiword_probs.view(batch*seq_len, dim), multiword_real.view(-1))
-
-        # sameas loss
-        batch, seq_len, dim = sameas_probs.size()
-        rowcol_len = int(np.sqrt(seq_len))
-        sameas_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
-        for i in range(batch):
-            try:
-                rows, columns = batch_sameas[i][:, 0], batch_sameas[i][:, 1]
-                labels = batch_sameas[i][:, 2]
-                sameas_real[i, rows, columns] = labels.to(self.device)
-            except:
-                pass
-
-        sameas_loss = self.criterion(sameas_probs.view(batch*seq_len, dim), sameas_real.view(-1))
 
         # relation loss
         batch, seq_len, dim = related_probs.size()
@@ -207,66 +163,15 @@ class Train:
 
         relation_type_loss = self.criterion(related_type_probs.view(batch*seq_len, dim), relation_real.view(-1))
 
-        loss = entity_loss + multiword_loss + sameas_loss + relation_loss + relation_type_loss
+        loss = entity_loss + relation_loss + relation_type_loss
         return loss
 
-    def compute_loss(self, entity_probs, batch_entity, multiword_probs, batch_multiword, \
-                     sameas_probs, batch_sameas, related_probs, batch_relation, \
+    def compute_loss(self, entity_probs, batch_entity, related_probs, batch_relation, \
                      related_type_probs, batch_relation_type):
         # entity loss
         batch, seq_len, dim = entity_probs.size()
         entity_real = torch.nn.utils.rnn.pad_sequence(batch_entity).transpose(0, 1).to(self.device)
         entity_loss = self.criterion(entity_probs.view(batch * seq_len, dim), entity_real.reshape(-1))
-
-        # multiword loss
-        batch, seq_len, dim = multiword_probs.size()
-        rowcol_len = int(np.sqrt(seq_len))
-        multiword_probs = multiword_probs.view((batch, rowcol_len, rowcol_len, dim))
-
-        multiword_real = []
-        multiword_pred = []
-        for i in range(batch):
-            try:
-                rows, columns = batch_multiword[i][:, 0], batch_multiword[i][:, 1]
-                labels = batch_multiword[i][:, 2]
-                multiword_real.extend(labels.tolist())
-
-                preds = multiword_probs[i, rows, columns] + multiword_probs[i, columns, rows] # inference
-                multiword_pred.append(preds)
-            except:
-                pass
-
-        try:
-            multiword_pred = torch.cat(multiword_pred, 0).to(self.device)
-            multiword_real = torch.tensor(multiword_real).to(self.device)
-            multiword_loss = self.criterion(multiword_pred, multiword_real)
-        except:
-            multiword_loss = 0
-
-        # sameas loss
-        batch, seq_len, dim = sameas_probs.size()
-        rowcol_len = int(np.sqrt(seq_len))
-        sameas_probs = sameas_probs.view((batch, rowcol_len, rowcol_len, dim))
-
-        sameas_real = []
-        sameas_pred = []
-        for i in range(batch):
-            try:
-                rows, columns = batch_sameas[i][:, 0], batch_sameas[i][:, 1]
-                labels = batch_sameas[i][:, 2]
-                sameas_real.extend(labels.tolist())
-
-                preds = sameas_probs[i, rows, columns] + sameas_probs[i, columns, rows] # inference
-                sameas_pred.append(preds)
-            except:
-                pass
-
-        try:
-            sameas_pred = torch.cat(sameas_pred, 0).to(self.device)
-            sameas_real = torch.tensor(sameas_real).to(self.device)
-            sameas_loss = self.criterion(sameas_pred, sameas_real)
-        except:
-            sameas_loss = 0
 
         # relation loss
         batch, seq_len, dim = related_probs.size()
@@ -319,7 +224,7 @@ class Train:
         except:
             relation_type_loss = 0
 
-        loss = entity_loss + multiword_loss + sameas_loss + relation_loss + relation_type_loss
+        loss = entity_loss + relation_loss + relation_type_loss
         return loss
 
     def train(self):
@@ -329,26 +234,21 @@ class Train:
         for epoch in range(self.epochs):
             self.model.train()
             losses = []
-            batch_X, batch_entity, batch_multiword, batch_sameas, batch_relation, batch_relation_type = [], [], [], [], [], []
+            batch_X, batch_entity, batch_relation, batch_relation_type = [], [], [], []
 
             for batch_idx, inp in enumerate(self.traindata):                
                 batch_X = inp['X']
                 # Predict
-                entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(batch_X)
+                entity_probs, related_probs, related_type_probs = self.model(batch_X)
 
                 self.optimizer.zero_grad()
 
                 # Calculate loss
                 batch_entity = torch.tensor([inp['entity']])
-                batch_multiword = torch.tensor([inp['multiword']])
-                batch_sameas = torch.tensor([inp['sameas']])
                 batch_relation = torch.tensor([inp['relation']])
                 batch_relation_type  = torch.tensor([inp['relation_type']])
                 loss = self.compute_loss(entity_probs,
                                         batch_entity,
-                                        multiword_probs,
-                                        batch_multiword,
-                                        sameas_probs, batch_sameas,
                                         related_probs,
                                         batch_relation,
                                         related_type_probs,
@@ -395,29 +295,21 @@ class Train:
 
         self.model.eval()
 
-        entity_pred, entity_true, is_related_pred, is_related_true, multiword_pred, multiword_true, relation_pred, relation_true = [], [], [], [], [], [], [], []
+        entity_pred, entity_true, is_related_pred, is_related_true, relation_pred, relation_true = [], [], [], [], [], []
         for inp in self.devdata:
             sentence = inp['X']
-            entity_ids = inp['entity'] 
-            multiword_ids = inp['multiword'] 
+            entity_ids = inp['entity']
             relation_ids = inp['relation']
             relation_type_ids  = inp['relation_type']
             
             # Predict
-            entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(sentence)
+            entity_probs, related_probs, related_type_probs = self.model(sentence)
 
             len_sentence = entity_probs.shape[1]
 
             # Entity
             entity_pred.append([int(w) for w in list(entity_probs[0].argmax(dim=1))])
             entity_true.append([int(w) for w in list(entity_ids)])
-
-            # Multiword
-            multiword_array = [int(w) for w in list(multiword_probs[0].argmax(dim=1))]
-            multiword_matrix = np.array(multiword_array).reshape((len_sentence, len_sentence))
-            current_multiword_true, current_multiword_pred = self._get_relation_eval(multiword_ids, multiword_matrix)
-            multiword_true.extend(current_multiword_true)
-            multiword_pred.extend(current_multiword_pred)
 
             # Is Related
             related_array = [int(w) for w in list(related_probs[0].argmax(dim=1))]
@@ -439,23 +331,19 @@ class Train:
             relation_true.extend(relation_type_true)
             relation_pred.extend(relation_type_pred)
 
-        entity_labels = list(range(1, len(utils.ENTITIES)))
-        entity_target_names = utils.ENTITIES[1:]
+        entity_labels = list(range(1, len(ENTITIES)))
+        entity_target_names = ENTITIES[1:]
         print("Entity report:")
         print(classification_report(_get_single_output_id_list(entity_true), _get_single_output_id_list(entity_pred),
                                     labels=entity_labels, target_names=entity_target_names))
-        print()
-
-        print("Multiword report:")
-        print(classification_report(multiword_true, multiword_pred))
         print()
 
         print("Is related report:")
         print(classification_report(is_related_true, is_related_pred))
         print()
 
-        relation_labels = list(range(1, len(utils.RELATIONS)))
-        relation_target_names = utils.RELATIONS[1:]
+        relation_labels = list(range(1, len(RELATIONS)))
+        relation_target_names = RELATIONS[1:]
         print("Relation type report")
         print(classification_report(relation_true, relation_pred, labels=relation_labels,
                                     target_names=relation_target_names))
@@ -470,25 +358,15 @@ class Train:
 
         self.model.eval()
 
-        entity_pred, multiword_pred, sameas_pred, related_pred, relation_type_pred = [], [], [], [], []
+        entity_pred, related_pred, relation_type_pred = [], [], []
         for sentence in test_dev_X:
             # Predict
-            entity_probs, multiword_probs, sameas_probs, related_probs, related_type_probs = self.model(sentence['X'])
+            entity_probs, related_probs, related_type_probs = self.model(sentence['X'])
 
             len_sentence = entity_probs.shape[1]
 
             # Entity
             entity_pred.append([int(w) for w in list(entity_probs[0].argmax(dim=1))])
-
-            # Multiword
-            multiword_array = [int(w) for w in list(multiword_probs[0].argmax(dim=1))]
-            multiword_matrix = np.array(multiword_array).reshape((len_sentence, len_sentence))
-            multiword_pred.append(self._get_relation_output(multiword_matrix, 1, len_sentence))
-
-            # Same-as
-            sameas_array = [int(w) for w in list(sameas_probs[0].argmax(dim=1))]
-            sameas_matrix = np.array(sameas_array).reshape((len_sentence, len_sentence))
-            sameas_pred.append(self._get_relation_output(sameas_matrix, 1, len_sentence))
 
             # Related
             related_array = [int(w) for w in list(related_probs[0].argmax(dim=1))]
@@ -500,7 +378,7 @@ class Train:
             relation_matrix = np.array(relation_array).reshape((len_sentence, len_sentence))
             relation_type_pred.append(self._get_relation_output(relation_matrix, 1, len_sentence))
 
-        return entity_pred, multiword_pred, sameas_pred, related_pred, relation_type_pred
+        return entity_pred, related_pred, relation_type_pred
 
     def eval(self, result_file_name='result.txt', verbose=False, scenario=None):
         # mode = training | develop
@@ -513,14 +391,13 @@ class Train:
             devdata_path = devdata_folder + scenario_folder + 'input_%s.json' % self.pretrained_model
             devdata = json.load(open(devdata_path))
             # devdata = DataLoader(self.preprocess(devdata), batch_size=self.batch_size, shuffle=True)
-            entity_pred, multiword_pred, sameas_pred, related_pred, relation_pred = self.test(devdata)
+            entity_pred, related_pred, relation_pred = self.test(devdata)
 
             output_path = '%s/run1/%s/' % (output_folder, scenario_folder)
             if not os.path.exists(output_path):
                 os.makedirs(output_path)
 
-            c = postprocessing.get_collection(devdata, entity_pred, multiword_pred, sameas_pred, related_pred,
-                                              relation_pred)
+            c = get_collection(devdata, entity_pred, related_pred, relation_pred)
             output_file_name = output_path + 'output.txt'
             c.dump(Path(output_file_name))
         command_text = "python3 data/scripts/score.py --gold {0} --submit {1}".format(devdata_folder, output_folder)

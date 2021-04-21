@@ -4,6 +4,7 @@ from transformers import AutoModel  # or BertModel, for BERT without pretraining
 from transformers import DistilBertModel, DistilBertConfig
 import torch
 import torch.nn as nn
+from utils import ENTITIES, RELATIONS
 
 class Classifier(nn.Module):
     def __init__(self, input_dim, output_dim):
@@ -26,7 +27,7 @@ class Classifier(nn.Module):
 
 class Vicomtech(nn.Module):
     def __init__(self, pretrained_model_path='dccuchile/bert-base-spanish-wwm-cased',
-                 hdim=768, edim=5, rdim=13,
+                 hdim=768, edim=len(ENTITIES), rdim=len(RELATIONS),
                  distilbert_nlayers=2, distilbert_nheads=2, device='cuda', max_length=128):
         super(Vicomtech, self).__init__()
         self.hdim = hdim
@@ -48,10 +49,6 @@ class Vicomtech(nn.Module):
 
         # linear projections
         self.entity_classifier = Classifier(hdim, edim)
-
-        self.multiword_classifier = Classifier(hdim, 2)
-
-        self.sameas_classifier = Classifier(hdim, 2)
 
         self.related_classifier = Classifier(hdim, 2)
 
@@ -82,10 +79,6 @@ class Vicomtech(nn.Module):
         # part 4
         ssd = self.distilbert(inputs_embeds=inp_distilbert)['last_hidden_state']
 
-        # part 5
-        _, multiword = self.multiword_classifier(ssd)
-        # part 6
-        _, sameas = self.sameas_classifier(ssd)
         # part 7
         logits, related = self.related_classifier(ssd)
 
@@ -94,5 +87,5 @@ class Vicomtech(nn.Module):
         # part 9
         _, related_type = self.relation_type_classifier(incoming_outgoing)
 
-        return entity, multiword, sameas, related, related_type
+        return entity, related, related_type
 
