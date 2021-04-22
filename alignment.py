@@ -1,4 +1,5 @@
 from transformers import AutoTokenizer  # Or BertTokenizer
+from transformers import MBartTokenizer
 from data.scripts.anntools import Collection
 from pathlib import Path
 import json
@@ -84,8 +85,10 @@ def run():
         output_file_name = config_file['output_file_name']
         is_ref = config_file['is_ref']
 
-    tokenizer = AutoTokenizer.from_pretrained(pretrained_model_path, do_lower_case=False)
-
+    if 'mbart' in pretrained_model_path:
+        tokenizer = MBartTokenizer.from_pretrained('facebook/mbart-large-cc25')
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(pretrained_model_path, do_lower_case=False)
 
     data = []
     if is_ref:
@@ -106,3 +109,6 @@ def run():
     # Create output files
     json.dump(data, open(input_path + output_file_name, 'w'), sort_keys=True, indent=4,
               separators=(',', ':'))
+
+if __name__ == '__main__':
+    run()
