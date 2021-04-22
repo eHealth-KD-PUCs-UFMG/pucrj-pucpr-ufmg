@@ -9,7 +9,7 @@ from shutil import copyfile
 from pathlib import Path
 
 import utils
-import postprocessing
+from postprocessing import get_collection
 
 class ProcDataset(Dataset):
     def __init__(self, data):
@@ -478,13 +478,7 @@ class Train:
             # Relation type
             relation_type_array = [int(w) for w in list(related_type_probs[0].argmax(dim=1))]
             relation_type_matrix = np.array(relation_type_array).reshape((len_sentence, len_sentence))
-
             relation_type_true, relation_type_pred = self._get_relation_eval(relation_type_ids, relation_type_matrix)
-            for relation in relation_ids:
-                idx1, idx2, label = relation
-                if label == 0:
-                    relation_type_true.append(int(label))
-                    relation_type_pred.append(int(relation_type_matrix[idx1, idx2]))
             relation_true.extend(relation_type_true)
             relation_pred.extend(relation_type_pred)
 
@@ -503,8 +497,8 @@ class Train:
         print(classification_report(is_related_true, is_related_pred))
         print()
 
-        relation_labels = list(range(1, len(utils.RELATIONS)))
-        relation_target_names = utils.RELATIONS[1:]
+        relation_labels = list(range(len(utils.RELATIONS)))
+        relation_target_names = utils.RELATIONS
         print("Relation type report")
         print(classification_report(relation_true, relation_pred, labels=relation_labels,
                                     target_names=relation_target_names))
@@ -547,7 +541,7 @@ class Train:
             # Relation type
             relation_array = [int(w) for w in list(related_type_probs[0].argmax(dim=1))]
             relation_matrix = np.array(relation_array).reshape((len_sentence, len_sentence))
-            relation_type_pred.append(self._get_relation_output(relation_matrix, 1, len_sentence))
+            relation_type_pred.append(self._get_relation_output(relation_matrix, 0, len_sentence))
 
         return entity_pred, multiword_pred, sameas_pred, related_pred, relation_type_pred
 
@@ -568,7 +562,7 @@ class Train:
             if not os.path.exists(output_path):
                 os.makedirs(output_path)
 
-            c = postprocessing.get_collection(devdata, entity_pred, multiword_pred, sameas_pred, related_pred,
+            c = get_collection(devdata, entity_pred, multiword_pred, sameas_pred, related_pred,
                                               relation_pred)
             output_file_name = output_path + 'output.txt'
             c.dump(Path(output_file_name))
