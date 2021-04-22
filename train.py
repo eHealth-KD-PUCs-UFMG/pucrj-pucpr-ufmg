@@ -28,7 +28,7 @@ class ProcDataset(Dataset):
 class Train:
     def __init__(self, model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16,
                  early_stop=3, device='cuda', write_path='model.pt', eval_mode='develop',
-                 pretrained_model='multilingual', log_path='logs'):
+                 pretrained_model='multilingual', log_path='logs', relations_positive_negative=False):
         self.epochs = epochs
         self.batch_size = batch_size
         self.batch_status = batch_status
@@ -50,7 +50,9 @@ class Train:
         self.eval_mode = eval_mode
         self.pretrained_model = pretrained_model
 
-        self.traindata = DataLoader(self.preprocess(traindata), batch_size=batch_size, shuffle=True)
+        # only use relations_positive_negative for train data
+        self.traindata = DataLoader(self.preprocess(traindata, relations_positive_negative=relations_positive_negative),
+                                    batch_size=batch_size, shuffle=True)
         self.devdata = DataLoader(self.preprocess(devdata), batch_size=batch_size, shuffle=True)
 
     def __str__(self):
@@ -60,9 +62,80 @@ class Train:
                                                                                                    self.eval_mode,
                                                                                                    self.pretrained_model)
 
-    def preprocess(self, procset):
-        inputs = []
+    @staticmethod
+    def _get_relations_data(row):
+        sameas, relation, relation_type = [], [], []
         nrelations = 0
+        for relation_ in row['relations']:
+            try:
+                arg1 = relation_['arg1']
+                arg1_idx0 = row['keyphrases'][str(arg1)]['idxs'][0]
+
+                arg2 = relation_['arg2']
+                arg2_idx0 = row['keyphrases'][str(arg2)]['idxs'][0]
+
+                label = relation_['label']
+                if label == 'same-as':
+                    sameas.append((arg1_idx0, arg2_idx0, 1))
+                    sameas.append((arg2_idx0, arg1_idx0, 1))
+                else:
+                    relation.append((arg1_idx0, arg2_idx0, 1))
+                    relation_type.append((arg1_idx0, arg2_idx0, utils.relation_w2id[label]))
+                    # negative same-as relation
+                    sameas.append((arg1_idx0, arg2_idx0, 0))
+                    sameas.append((arg2_idx0, arg1_idx0, 0))
+            except:
+                pass
+
+        # negative relation examples
+        arg1_idx0s = [w[0] for w in relation]
+        arg2_idx0s = [w[1] for w in relation]
+        for arg1_idx0 in arg1_idx0s:
+            for arg2_idx0 in arg2_idx0s:
+                f = [w for w in relation if w[0] == arg1_idx0 and w[1] == arg2_idx0]
+                if len(f) == 0:
+                    relation.append((arg1_idx0, arg2_idx0, 0))
+                    nrelations += 1
+
+                f = [w for w in relation if w[0] == arg2_idx0 and w[1] == arg1_idx0]
+                if len(f) == 0:
+                    relation.append((arg2_idx0, arg1_idx0, 0))
+                    nrelations += 1
+        return sameas, relation, relation_type
+
+    @staticmethod
+    def _get_relations_positive_negative_data(row):
+        sameas, relation, relation_type = [], [], []
+        for relation_ in row['relations_positive_negative']:
+            try:
+                arg1 = relation_['arg1']
+                arg1_idx0 = row['keyphrases'][str(arg1)]['idxs'][0]
+
+                arg2 = relation_['arg2']
+                arg2_idx0 = row['keyphrases'][str(arg2)]['idxs'][0]
+
+                label = relation_['label']
+                if label == 'NONE':
+                    label = 'O'
+
+                if label == 'same-as':
+                    sameas.append((arg1_idx0, arg2_idx0, 1))
+                    sameas.append((arg2_idx0, arg1_idx0, 1))
+                else:
+                    if utils.relation_w2id[label] > 0:
+                        relation.append((arg1_idx0, arg2_idx0, 1))
+                        relation_type.append((arg1_idx0, arg2_idx0, utils.relation_w2id[label]))
+                    else:
+                        relation.append((arg1_idx0, arg2_idx0, 0))
+                    # negative same-as relation
+                    sameas.append((arg1_idx0, arg2_idx0, 0))
+                    sameas.append((arg2_idx0, arg1_idx0, 0))
+            except:
+                pass
+        return sameas, relation, relation_type
+
+    def preprocess(self, procset, relations_positive_negative=False):
+        inputs = []
         for row in procset:
             text = row['text']
             tokens = row['tokens']
@@ -99,42 +172,10 @@ class Train:
                     pass
 
             # relations gold-standards
-            sameas, relation, relation_type = [], [], []
-            for relation_ in row['relations']:
-                try:
-                    arg1 = relation_['arg1']
-                    arg1_idx0 = row['keyphrases'][str(arg1)]['idxs'][0]
-
-                    arg2 = relation_['arg2']
-                    arg2_idx0 = row['keyphrases'][str(arg2)]['idxs'][0]
-
-                    label = relation_['label']
-                    if label == 'same-as':
-                        sameas.append((arg1_idx0, arg2_idx0, 1))
-                        sameas.append((arg2_idx0, arg1_idx0, 1))
-                    else:
-                        relation.append((arg1_idx0, arg2_idx0, 1))
-                        relation_type.append((arg1_idx0, arg2_idx0, utils.relation_w2id[label]))
-                        # negative same-as relation
-                        sameas.append((arg1_idx0, arg2_idx0, 0))
-                        sameas.append((arg2_idx0, arg1_idx0, 0))
-                except:
-                    pass
-
-            # negative relation examples
-            arg1_idx0s = [w[0] for w in relation]
-            arg2_idx0s = [w[1] for w in relation]
-            for arg1_idx0 in arg1_idx0s:
-                for arg2_idx0 in arg2_idx0s:
-                    f = [w for w in relation if w[0] == arg1_idx0 and w[1] == arg2_idx0]
-                    if len(f) == 0:
-                        relation.append((arg1_idx0, arg2_idx0, 0))
-                        nrelations += 1
-                    
-                    f = [w for w in relation if w[0] == arg2_idx0 and w[1] == arg1_idx0]
-                    if len(f) == 0:
-                        relation.append((arg2_idx0, arg1_idx0, 0))
-                        nrelations += 1
+            if relations_positive_negative:
+                sameas, relation, relation_type = self._get_relations_positive_negative_data(row)
+            else:
+                sameas, relation, relation_type = self._get_relations_data(row)
 
             inputs.append({
                 'X': text,
