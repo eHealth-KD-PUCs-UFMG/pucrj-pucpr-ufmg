@@ -1,4 +1,5 @@
 from transformers import AutoTokenizer  # Or BertTokenizer
+from transformers import T5Tokenizer
 from data.scripts.anntools import Collection
 from pathlib import Path
 import json
@@ -19,8 +20,8 @@ def extract_keyphrases(keyphrases, text, tokens):
                 idxs.append(i)
                 ponteiro += 1
                 cmp_token, cmp_idxs = [], []
-            elif token.replace('##', '') in ktokens[ponteiro]:
-                cmp_token.append(token.replace('##', ''))
+            elif token.replace('##', '').replace('▁', '') in ktokens[ponteiro]:
+                cmp_token.append(token.replace('##', '').replace('▁', ''))
                 cmp_idxs.append(i)
                 for j in range(len(cmp_token)):
                     if ''.join(cmp_token[j:]) == ktokens[ponteiro]:
@@ -83,9 +84,12 @@ def run():
         input_path = config_file['input_path']
         output_file_name = config_file['output_file_name']
         is_ref = config_file['is_ref']
+        is_test = config_file['is_test']
 
-    tokenizer = AutoTokenizer.from_pretrained(pretrained_model_path, do_lower_case=False)
-
+    if 'mt5' in pretrained_model_path:
+        tokenizer = T5Tokenizer.from_pretrained(pretrained_model_path)
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(pretrained_model_path, do_lower_case=False)
 
     data = []
     if is_ref:
@@ -100,9 +104,15 @@ def run():
             add_data(c, data, tokenizer, ref)
     else:
         c = Collection()
-        c.load(Path(input_path + 'output.txt'))
+        if is_test:
+            c.load(Path(input_path + 'input.txt'))
+        else:
+            c.load(Path(input_path + 'output.txt'))
         add_data(c, data, tokenizer)
 
     # Create output files
     json.dump(data, open(input_path + output_file_name, 'w'), sort_keys=True, indent=4,
               separators=(',', ':'))
+
+if __name__ == '__main__':
+    run()

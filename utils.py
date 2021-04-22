@@ -2,7 +2,7 @@ ENTITIES = ["O", "B-Concept", "I-Concept", "B-Action", "I-Action", "B-Predicate"
             "I-Reference"]
 
 RELATIONS = [
-    "O",
+    # "O",
     "is-a",
     "part-of",
     "has-property",

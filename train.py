@@ -28,7 +28,7 @@ class ProcDataset(Dataset):
 class Train:
     def __init__(self, model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16,
                  early_stop=3, device='cuda', write_path='model.pt', eval_mode='develop',
-                 pretrained_model='multilingual', log_path='logs'):
+                 pretrained_model='multilingual', log_path='logs', relations_positive_negative=False):
         self.epochs = epochs
         self.batch_size = batch_size
         self.batch_status = batch_status
@@ -50,7 +50,9 @@ class Train:
         self.eval_mode = eval_mode
         self.pretrained_model = pretrained_model
 
-        self.traindata = DataLoader(self.preprocess(traindata), batch_size=batch_size, shuffle=True)
+        # only use relations_positive_negative for train data
+        self.traindata = DataLoader(self.preprocess(traindata, relations_positive_negative=relations_positive_negative),
+                                    batch_size=batch_size, shuffle=True)
         self.devdata = DataLoader(self.preprocess(devdata), batch_size=batch_size, shuffle=True)
 
     def __str__(self):
@@ -60,15 +62,84 @@ class Train:
                                                                                                    self.eval_mode,
                                                                                                    self.pretrained_model)
 
-    def preprocess(self, procset):
-        inputs = []
+    @staticmethod
+    def _get_relations_data(row):
+        sameas, relation, relation_type = [], [], []
         nrelations = 0
+        for relation_ in row['relations']:
+            try:
+                arg1 = relation_['arg1']
+                arg1_idx0 = row['keyphrases'][str(arg1)]['idxs'][0]
+
+                arg2 = relation_['arg2']
+                arg2_idx0 = row['keyphrases'][str(arg2)]['idxs'][0]
+
+                label = relation_['label']
+                if label == 'same-as':
+                    sameas.append((arg1_idx0, arg2_idx0, 1))
+                    sameas.append((arg2_idx0, arg1_idx0, 1))
+                else:
+                    relation.append((arg1_idx0, arg2_idx0, 1))
+                    relation_type.append((arg1_idx0, arg2_idx0, utils.relation_w2id[label]))
+                    # negative same-as relation
+                    sameas.append((arg1_idx0, arg2_idx0, 0))
+                    sameas.append((arg2_idx0, arg1_idx0, 0))
+            except:
+                pass
+
+        # negative relation examples
+        arg1_idx0s = [w[0] for w in relation]
+        arg2_idx0s = [w[1] for w in relation]
+        for arg1_idx0 in arg1_idx0s:
+            for arg2_idx0 in arg2_idx0s:
+                f = [w for w in relation if w[0] == arg1_idx0 and w[1] == arg2_idx0]
+                if len(f) == 0:
+                    relation.append((arg1_idx0, arg2_idx0, 0))
+                    nrelations += 1
+
+                f = [w for w in relation if w[0] == arg2_idx0 and w[1] == arg1_idx0]
+                if len(f) == 0:
+                    relation.append((arg2_idx0, arg1_idx0, 0))
+                    nrelations += 1
+        return sameas, relation, relation_type
+
+    @staticmethod
+    def _get_relations_positive_negative_data(row):
+        sameas, relation, relation_type = [], [], []
+        for relation_ in row['relations_positive_negative']:
+            try:
+                arg1 = relation_['arg1']
+                arg1_idx0 = row['keyphrases'][str(arg1)]['idxs'][0]
+
+                arg2 = relation_['arg2']
+                arg2_idx0 = row['keyphrases'][str(arg2)]['idxs'][0]
+
+                label = relation_['label']
+                if label == 'same-as':
+                    sameas.append((arg1_idx0, arg2_idx0, 1))
+                    sameas.append((arg2_idx0, arg1_idx0, 1))
+                else:
+                    if label == 'NONE':
+                        relation.append((arg1_idx0, arg2_idx0, 0))
+                    else:
+                        relation.append((arg1_idx0, arg2_idx0, 1))
+                        relation_type.append((arg1_idx0, arg2_idx0, utils.relation_w2id[label]))
+                    # negative same-as relation
+                    sameas.append((arg1_idx0, arg2_idx0, 0))
+                    sameas.append((arg2_idx0, arg1_idx0, 0))
+            except:
+                pass
+        return sameas, relation, relation_type
+
+    def preprocess(self, procset, relations_positive_negative=False):
+        inputs = []
         for row in procset:
             text = row['text']
             tokens = row['tokens']
 
             size = len(tokens)
             entity = size * [0]
+            multiword = []
 
             # entity and multiword gold-standard
             for keyid in row['keyphrases']:
@@ -77,49 +148,31 @@ class Train:
                     idxs = keyphrase['idxs']
 
                     # mark only first subword with entity type
-                    label_begin_idx = entity_w2id['B-' + keyphrase['label']]
-                    label_internal_idx = entity_w2id['I-' + keyphrase['label']]
-                    first = True
+                    label_idx = utils.entity_w2id[keyphrase['label']]
                     for idx in idxs:
                         if not tokens[idx].startswith('##'):
-                            if first:
-                                entity[idx] = label_begin_idx
-                                first = False
-                            else:
-                                entity[idx] = label_internal_idx
+                            entity[idx] = label_idx
+
+                    # multiword
+                    for idx in idxs:
+                        multiword.extend([(idx, idx_, 1) for idx_ in idxs if idx != idx_])
+
+                    # negative examples (before first idx, after last ids,)
+                    # - negative examples surrounding first and last idxs
+                    idxs = sorted(idxs)
+                    for idx in idxs:
+                        for idx_ in range(size):
+                            if idx_ not in idxs and entity[idx_] > 0:
+                                multiword.append((idx, idx_, 0))
+                                multiword.append((idx_, idx, 0))
                 except:
                     pass
 
             # relations gold-standards
-            relation, relation_type = [], []
-            for relation_ in row['relations']:
-                try:
-                    arg1 = relation_['arg1']
-                    arg1_idx0 = row['keyphrases'][str(arg1)]['idxs'][0]
-
-                    arg2 = relation_['arg2']
-                    arg2_idx0 = row['keyphrases'][str(arg2)]['idxs'][0]
-
-                    label = relation_['label']
-                    relation.append((arg1_idx0, arg2_idx0, 1))
-                    relation_type.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
-                except:
-                    pass
-
-            # negative relation examples
-            arg1_idx0s = [w[0] for w in relation]
-            arg2_idx0s = [w[1] for w in relation]
-            for arg1_idx0 in arg1_idx0s:
-                for arg2_idx0 in arg2_idx0s:
-                    f = [w for w in relation if w[0] == arg1_idx0 and w[1] == arg2_idx0]
-                    if len(f) == 0:
-                        relation.append((arg1_idx0, arg2_idx0, 0))
-                        nrelations += 1
-                    
-                    f = [w for w in relation if w[0] == arg2_idx0 and w[1] == arg1_idx0]
-                    if len(f) == 0:
-                        relation.append((arg2_idx0, arg1_idx0, 0))
-                        nrelations += 1
+            if relations_positive_negative:
+                sameas, relation, relation_type = self._get_relations_positive_negative_data(row)
+            else:
+                sameas, relation, relation_type = self._get_relations_data(row)
 
             inputs.append({
                 'X': text,
@@ -130,6 +183,9 @@ class Train:
         return ProcDataset(inputs)
 
     def compute_loss_full(self, entity_probs, batch_entity, related_probs, batch_relation, related_type_probs):
+    def compute_loss_full(self, entity_probs, batch_entity, multiword_probs, batch_multiword, \
+                    sameas_probs, batch_sameas, related_probs, batch_relation,\
+                    related_type_probs, batch_relation_type):
         # entity loss
         batch, seq_len, dim = entity_probs.size()
         entity_real = torch.nn.utils.rnn.pad_sequence(batch_entity).transpose(0, 1).to(self.device)
@@ -149,24 +205,36 @@ class Train:
 
         relation_loss = self.criterion(related_probs.view(batch*seq_len, dim), relation_real.view(-1))
 
-        # relation type loss
         batch, seq_len, dim = related_type_probs.size()
         rowcol_len = int(np.sqrt(seq_len))
-        relation_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
+        related_type_probs = related_type_probs.view((batch, rowcol_len, rowcol_len, dim))
+
+        relation_real = []
+        relation_pred = []
+
         for i in range(batch):
             try:
-                rows, columns = batch_relation[i][:, 0], batch_relation[i][:, 1]
-                labels = batch_relation[i][:, 2]
-                relation_real[i, rows, columns] = labels.to(self.device)
+                rows, columns = batch_relation_type[i][:, 0], batch_relation_type[i][:, 1]
+                labels = batch_relation_type[i][:, 2]
+                relation_real.extend(labels.tolist())
+
+                preds = related_type_probs[i, rows, columns]
+                relation_pred.append(preds)
             except:
                 pass
 
-        relation_type_loss = self.criterion(related_type_probs.view(batch*seq_len, dim), relation_real.view(-1))
+        try:
+            relation_pred = torch.cat(relation_pred, 0).to(self.device)
+            relation_real = torch.tensor(relation_real).to(self.device)
+            relation_type_loss = self.criterion(relation_pred, relation_real)
+        except:
+            relation_type_loss = 0
 
-        loss = entity_loss + relation_loss + relation_type_loss
+        loss = entity_loss + multiword_loss + sameas_loss + relation_loss + relation_type_loss
         return loss
 
-    def compute_loss(self, entity_probs, batch_entity, related_probs, batch_relation, \
+    def compute_loss(self, entity_probs, batch_entity, multiword_probs, batch_multiword, \
+                     sameas_probs, batch_sameas, related_probs, batch_relation, \
                      related_type_probs, batch_relation_type):
         # entity loss
         batch, seq_len, dim = entity_probs.size()
@@ -247,7 +315,7 @@ class Train:
                 batch_entity = torch.tensor([inp['entity']])
                 batch_relation = torch.tensor([inp['relation']])
                 batch_relation_type  = torch.tensor([inp['relation_type']])
-                loss = self.compute_loss(entity_probs,
+                loss = self.compute_loss_full(entity_probs,
                                         batch_entity,
                                         related_probs,
                                         batch_relation,

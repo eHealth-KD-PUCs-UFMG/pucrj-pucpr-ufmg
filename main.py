@@ -18,7 +18,7 @@ BATCH_STATUS=64
 EPOCH=200
 BATCH_SIZE=1
 PRETRAINED_MODEL = 'multilingual'
-EARLY_STOP = 12
+EARLY_STOP = 50
 LEARNING_RATE=2e-5
 
 if __name__ == '__main__':
