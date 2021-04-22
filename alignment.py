@@ -19,8 +19,8 @@ def extract_keyphrases(keyphrases, text, tokens):
                 idxs.append(i)
                 ponteiro += 1
                 cmp_token, cmp_idxs = [], []
-            elif token.replace('##', '') in ktokens[ponteiro]:
-                cmp_token.append(token.replace('##', ''))
+            elif token.replace('##', '').replace('▁', '') in ktokens[ponteiro]:
+                cmp_token.append(token.replace('##', '').replace('▁', ''))
                 cmp_idxs.append(i)
                 for j in range(len(cmp_token)):
                     if ''.join(cmp_token[j:]) == ktokens[ponteiro]:

@@ -2,7 +2,7 @@
 from transformers import AutoTokenizer  # Or BertTokenizer
 from transformers import AutoModel  # or BertModel, for BERT without pretraining heads
 from transformers import DistilBertModel, DistilBertConfig
-from transformers import MBartTokenizer, MBartModel
+from transformers import MT5EncoderModel, T5Tokenizer
 import torch
 import torch.nn as nn
 
@@ -37,10 +37,10 @@ class Vicomtech(nn.Module):
         self.max_length = max_length
         
         # BETO
-        if 'mbart' in pretrained_model_path:
-            self.tokenizer = MBartTokenizer.from_pretrained('facebook/mbart-large-cc25')
-            self.beto = MBartModel.from_pretrained('facebook/mbart-large-cc25')
-            self.hdim = 1024
+        if 'mt5' in pretrained_model_path:
+            # google/mt5-base
+            self.beto = MT5EncoderModel.from_pretrained(pretrained_model_path)
+            self.tokenizer = T5Tokenizer.from_pretrained(pretrained_model_path)
         else:
             self.tokenizer = AutoTokenizer.from_pretrained(pretrained_model_path, do_lower_case=False)
             self.beto = AutoModel.from_pretrained(pretrained_model_path)
