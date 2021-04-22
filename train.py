@@ -62,7 +62,6 @@ class Train:
 
     def preprocess(self, procset):
         inputs = []
-        nrelations = 0
         for row in procset:
             text = row['text']
             tokens = row['tokens']
@@ -129,12 +128,10 @@ class Train:
                     f = [w for w in relation if w[0] == arg1_idx0 and w[1] == arg2_idx0]
                     if len(f) == 0:
                         relation.append((arg1_idx0, arg2_idx0, 0))
-                        nrelations += 1
                     
                     f = [w for w in relation if w[0] == arg2_idx0 and w[1] == arg1_idx0]
                     if len(f) == 0:
                         relation.append((arg2_idx0, arg1_idx0, 0))
-                        nrelations += 1
 
             inputs.append({
                 'X': text,
@@ -148,7 +145,7 @@ class Train:
 
     def compute_loss_full(self, entity_probs, batch_entity, multiword_probs, batch_multiword, \
                     sameas_probs, batch_sameas, related_probs, batch_relation,\
-                    related_type_probs):
+                    related_type_probs, batch_relation_type):
         # entity loss
         batch, seq_len, dim = entity_probs.size()
         entity_real = torch.nn.utils.rnn.pad_sequence(batch_entity).transpose(0, 1).to(self.device)
@@ -194,18 +191,43 @@ class Train:
         relation_loss = self.criterion(related_probs.view(batch*seq_len, dim), relation_real.view(-1))
 
         # relation type loss
+        # batch, seq_len, dim = related_type_probs.size()
+        # rowcol_len = int(np.sqrt(seq_len))
+        # relation_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
+        # for i in range(batch):
+        #     try:
+        #         rows, columns = batch_relation[i][:, 0], batch_relation[i][:, 1]
+        #         labels = batch_relation[i][:, 2]
+        #         relation_real[i, rows, columns] = labels.to(self.device)
+        #     except:
+        #         pass
+
+        # relation_type_loss = self.criterion(related_type_probs.view(batch*seq_len, dim), relation_real.view(-1))
+        # relation type loss
         batch, seq_len, dim = related_type_probs.size()
         rowcol_len = int(np.sqrt(seq_len))
-        relation_real = torch.zeros((batch, rowcol_len, rowcol_len)).long().to(self.device)
+        related_type_probs = related_type_probs.view((batch, rowcol_len, rowcol_len, dim))
+
+        relation_real = []
+        relation_pred = []
+
         for i in range(batch):
             try:
-                rows, columns = batch_relation[i][:, 0], batch_relation[i][:, 1]
-                labels = batch_relation[i][:, 2]
-                relation_real[i, rows, columns] = labels.to(self.device)
+                rows, columns = batch_relation_type[i][:, 0], batch_relation_type[i][:, 1]
+                labels = batch_relation_type[i][:, 2]
+                relation_real.extend(labels.tolist())
+
+                preds = related_type_probs[i, rows, columns]
+                relation_pred.append(preds)
             except:
                 pass
 
-        relation_type_loss = self.criterion(related_type_probs.view(batch*seq_len, dim), relation_real.view(-1))
+        try:
+            relation_pred = torch.cat(relation_pred, 0).to(self.device)
+            relation_real = torch.tensor(relation_real).to(self.device)
+            relation_type_loss = self.criterion(relation_pred, relation_real)
+        except:
+            relation_type_loss = 0
 
         loss = entity_loss + multiword_loss + sameas_loss + relation_loss + relation_type_loss
         return loss
@@ -344,7 +366,7 @@ class Train:
                 batch_sameas = torch.tensor([inp['sameas']])
                 batch_relation = torch.tensor([inp['relation']])
                 batch_relation_type  = torch.tensor([inp['relation_type']])
-                loss = self.compute_loss(entity_probs,
+                loss = self.compute_loss_full(entity_probs,
                                         batch_entity,
                                         multiword_probs,
                                         batch_multiword,
