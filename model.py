@@ -26,7 +26,7 @@ class Classifier(nn.Module):
 
 class Vicomtech(nn.Module):
     def __init__(self, pretrained_model_path='dccuchile/bert-base-spanish-wwm-cased',
-                 hdim=768, edim=5, rdim=13,
+                 hdim=768, edim=5, rdim=12,
                  distilbert_nlayers=2, distilbert_nheads=2, device='cuda', max_length=128):
         super(Vicomtech, self).__init__()
         self.hdim = hdim
