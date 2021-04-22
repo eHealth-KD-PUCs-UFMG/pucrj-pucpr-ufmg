@@ -80,7 +80,7 @@ class Train:
                     sameas.append((arg2_idx0, arg1_idx0, 1))
                 else:
                     relation.append((arg1_idx0, arg2_idx0, 1))
-                    relation_type.append((arg1_idx0, arg2_idx0, utils.relation_w2id[label]))
+                    relation_type.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
                     # negative same-as relation
                     sameas.append((arg1_idx0, arg2_idx0, 0))
                     sameas.append((arg2_idx0, arg1_idx0, 0))
@@ -123,7 +123,7 @@ class Train:
                         relation.append((arg1_idx0, arg2_idx0, 0))
                     else:
                         relation.append((arg1_idx0, arg2_idx0, 1))
-                        relation_type.append((arg1_idx0, arg2_idx0, utils.relation_w2id[label]))
+                        relation_type.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
                     # negative same-as relation
                     sameas.append((arg1_idx0, arg2_idx0, 0))
                     sameas.append((arg2_idx0, arg1_idx0, 0))
@@ -148,7 +148,7 @@ class Train:
                     idxs = keyphrase['idxs']
 
                     # mark only first subword with entity type
-                    label_idx = utils.entity_w2id[keyphrase['label']]
+                    label_idx = entity_w2id[keyphrase['label']]
                     for idx in idxs:
                         if not tokens[idx].startswith('##'):
                             entity[idx] = label_idx
@@ -182,10 +182,8 @@ class Train:
             })
         return ProcDataset(inputs)
 
-    def compute_loss_full(self, entity_probs, batch_entity, related_probs, batch_relation, related_type_probs):
-    def compute_loss_full(self, entity_probs, batch_entity, multiword_probs, batch_multiword, \
-                    sameas_probs, batch_sameas, related_probs, batch_relation,\
-                    related_type_probs, batch_relation_type):
+    def compute_loss_full(self, entity_probs, batch_entity, related_probs, batch_relation, related_type_probs,
+                          batch_relation_type):
         # entity loss
         batch, seq_len, dim = entity_probs.size()
         entity_real = torch.nn.utils.rnn.pad_sequence(batch_entity).transpose(0, 1).to(self.device)
@@ -230,12 +228,11 @@ class Train:
         except:
             relation_type_loss = 0
 
-        loss = entity_loss + multiword_loss + sameas_loss + relation_loss + relation_type_loss
+        loss = entity_loss + relation_loss + relation_type_loss
         return loss
 
-    def compute_loss(self, entity_probs, batch_entity, multiword_probs, batch_multiword, \
-                     sameas_probs, batch_sameas, related_probs, batch_relation, \
-                     related_type_probs, batch_relation_type):
+    def compute_loss(self, entity_probs, batch_entity, related_probs, batch_relation, related_type_probs,
+                     batch_relation_type):
         # entity loss
         batch, seq_len, dim = entity_probs.size()
         entity_real = torch.nn.utils.rnn.pad_sequence(batch_entity).transpose(0, 1).to(self.device)
