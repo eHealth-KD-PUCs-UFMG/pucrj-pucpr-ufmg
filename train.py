@@ -115,18 +115,15 @@ class Train:
                 arg2_idx0 = row['keyphrases'][str(arg2)]['idxs'][0]
 
                 label = relation_['label']
-                if label == 'NONE':
-                    label = 'O'
-
                 if label == 'same-as':
                     sameas.append((arg1_idx0, arg2_idx0, 1))
                     sameas.append((arg2_idx0, arg1_idx0, 1))
                 else:
-                    if utils.relation_w2id[label] > 0:
+                    if label == 'NONE':
+                        relation.append((arg1_idx0, arg2_idx0, 0))
+                    else:
                         relation.append((arg1_idx0, arg2_idx0, 1))
                         relation_type.append((arg1_idx0, arg2_idx0, utils.relation_w2id[label]))
-                    else:
-                        relation.append((arg1_idx0, arg2_idx0, 0))
                     # negative same-as relation
                     sameas.append((arg1_idx0, arg2_idx0, 0))
                     sameas.append((arg2_idx0, arg1_idx0, 0))
