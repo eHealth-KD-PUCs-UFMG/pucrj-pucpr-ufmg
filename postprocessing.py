@@ -49,8 +49,6 @@ def discard_entities(sentence):
 
 def check_tuple_in_list(relation_tuple, related_list):
     idx1, idx2, label = relation_tuple
-    if label <= 0:
-        return False
     for related_idx1, related_idx2, related_label in related_list:
         if related_label >= 1 and idx1 == related_idx1 and idx2 == related_idx2:
             return True
@@ -66,7 +64,7 @@ def filter_relations_using_related(relation_type_list, related_list):
 
 def add_relations(sentence, relation_list, token2entity, relation_id2w):
     for token_idx1, token_idx2, label_idx in relation_list:
-        if label_idx > 0 and token_idx1 in token2entity and token_idx2 in token2entity:
+        if relation_id2w[label_idx] != 'NONE' and token_idx1 in token2entity and token_idx2 in token2entity:
             origin, destination = token2entity[token_idx1], token2entity[token_idx2]
             if origin != destination and sentence.find_keyphrase(id=origin) is not None and sentence.find_keyphrase(
                     id=destination) is not None:
@@ -137,6 +135,8 @@ def get_collection(preprocessed_dataset, entity, related, relation_type):
             index += 1
         discard_entities(sentence)
 
+        add_relations(sentence, sameas_list, token_index_to_entity_id, {0: 'NONE', 1: 'same-as'})
+        add_relations(sentence, relation_type_list, token_index_to_entity_id, utils.relation_id2w)
         add_relations(sentence, relation_type_list, token_index_to_entity_id, relation_id2w)
 
         c.sentences.append(sentence)
