@@ -135,8 +135,6 @@ def get_collection(preprocessed_dataset, entity, related, relation_type):
             index += 1
         discard_entities(sentence)
 
-        add_relations(sentence, sameas_list, token_index_to_entity_id, {0: 'NONE', 1: 'same-as'})
-        add_relations(sentence, relation_type_list, token_index_to_entity_id, utils.relation_id2w)
         add_relations(sentence, relation_type_list, token_index_to_entity_id, relation_id2w)
 
         c.sentences.append(sentence)

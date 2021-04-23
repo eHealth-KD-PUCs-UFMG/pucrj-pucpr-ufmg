@@ -64,7 +64,7 @@ class Train:
 
     @staticmethod
     def _get_relations_data(row):
-        sameas, relation, relation_type = [], [], []
+        relation, relation_type = [], []
         nrelations = 0
         for relation_ in row['relations']:
             try:
@@ -75,15 +75,8 @@ class Train:
                 arg2_idx0 = row['keyphrases'][str(arg2)]['idxs'][0]
 
                 label = relation_['label']
-                if label == 'same-as':
-                    sameas.append((arg1_idx0, arg2_idx0, 1))
-                    sameas.append((arg2_idx0, arg1_idx0, 1))
-                else:
-                    relation.append((arg1_idx0, arg2_idx0, 1))
-                    relation_type.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
-                    # negative same-as relation
-                    sameas.append((arg1_idx0, arg2_idx0, 0))
-                    sameas.append((arg2_idx0, arg1_idx0, 0))
+                relation.append((arg1_idx0, arg2_idx0, 1))
+                relation_type.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
             except:
                 pass
 
@@ -101,11 +94,11 @@ class Train:
                 if len(f) == 0:
                     relation.append((arg2_idx0, arg1_idx0, 0))
                     nrelations += 1
-        return sameas, relation, relation_type
+        return relation, relation_type
 
     @staticmethod
     def _get_relations_positive_negative_data(row):
-        sameas, relation, relation_type = [], [], []
+        relation, relation_type = [], []
         for relation_ in row['relations_positive_negative']:
             try:
                 arg1 = relation_['arg1']
@@ -115,21 +108,14 @@ class Train:
                 arg2_idx0 = row['keyphrases'][str(arg2)]['idxs'][0]
 
                 label = relation_['label']
-                if label == 'same-as':
-                    sameas.append((arg1_idx0, arg2_idx0, 1))
-                    sameas.append((arg2_idx0, arg1_idx0, 1))
+                if label == 'NONE':
+                    relation.append((arg1_idx0, arg2_idx0, 0))
                 else:
-                    if label == 'NONE':
-                        relation.append((arg1_idx0, arg2_idx0, 0))
-                    else:
-                        relation.append((arg1_idx0, arg2_idx0, 1))
-                        relation_type.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
-                    # negative same-as relation
-                    sameas.append((arg1_idx0, arg2_idx0, 0))
-                    sameas.append((arg2_idx0, arg1_idx0, 0))
+                    relation.append((arg1_idx0, arg2_idx0, 1))
+                    relation_type.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
             except:
                 pass
-        return sameas, relation, relation_type
+        return relation, relation_type
 
     def preprocess(self, procset, relations_positive_negative=False):
         inputs = []
@@ -139,40 +125,32 @@ class Train:
 
             size = len(tokens)
             entity = size * [0]
-            multiword = []
 
-            # entity and multiword gold-standard
+            # entity gold-standard
             for keyid in row['keyphrases']:
                 try:
                     keyphrase = row['keyphrases'][keyid]
                     idxs = keyphrase['idxs']
 
                     # mark only first subword with entity type
-                    label_idx = entity_w2id[keyphrase['label']]
+                    label_begin_idx = entity_w2id['B-' + keyphrase['label']]
+                    label_internal_idx = entity_w2id['I-' + keyphrase['label']]
+                    first = True
                     for idx in idxs:
                         if not tokens[idx].startswith('##'):
-                            entity[idx] = label_idx
-
-                    # multiword
-                    for idx in idxs:
-                        multiword.extend([(idx, idx_, 1) for idx_ in idxs if idx != idx_])
-
-                    # negative examples (before first idx, after last ids,)
-                    # - negative examples surrounding first and last idxs
-                    idxs = sorted(idxs)
-                    for idx in idxs:
-                        for idx_ in range(size):
-                            if idx_ not in idxs and entity[idx_] > 0:
-                                multiword.append((idx, idx_, 0))
-                                multiword.append((idx_, idx, 0))
+                            if first:
+                                entity[idx] = label_begin_idx
+                                first = False
+                            else:
+                                entity[idx] = label_internal_idx
                 except:
                     pass
 
             # relations gold-standards
             if relations_positive_negative:
-                sameas, relation, relation_type = self._get_relations_positive_negative_data(row)
+                relation, relation_type = self._get_relations_positive_negative_data(row)
             else:
-                sameas, relation, relation_type = self._get_relations_data(row)
+                relation, relation_type = self._get_relations_data(row)
 
             inputs.append({
                 'X': text,
@@ -401,8 +379,8 @@ class Train:
         print(classification_report(is_related_true, is_related_pred))
         print()
 
-        relation_labels = list(range(len(utils.RELATIONS)))
-        relation_target_names = utils.RELATIONS
+        relation_labels = list(range(len(RELATIONS)))
+        relation_target_names = RELATIONS
         print("Relation type report")
         print(classification_report(relation_true, relation_pred, labels=relation_labels,
                                     target_names=relation_target_names))
