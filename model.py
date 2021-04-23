@@ -36,6 +36,7 @@ class Vicomtech(nn.Module):
         self.rdim = rdim
         self.device = device
         self.max_length = max_length
+        self.pretrained_model_path = pretrained_model_path
         
         # BETO
         if 'mt5' in pretrained_model_path:
@@ -49,8 +50,11 @@ class Vicomtech(nn.Module):
         # DistilBERT
         self.distil_layer = nn.Linear(2*(hdim+edim), hdim)
         self.tanh = nn.Tanh()
-        configuration = DistilBertConfig(vocab_size=len(self.tokenizer.vocab), 
-                                        n_layers=distilbert_nlayers, n_heads=distilbert_nheads)
+        if 'mt5' in self.pretrained_model_path:
+            vocab_size=self.tokenizer.vocab_size
+        else:
+            vocab_size=len(self.tokenizer.vocab)
+        configuration = DistilBertConfig(vocab_size=vocab_size, n_layers=distilbert_nlayers, n_heads=distilbert_nheads)
         self.distilbert = DistilBertModel(configuration)
 
         # linear projections
