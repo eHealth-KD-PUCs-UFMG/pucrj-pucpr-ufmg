@@ -28,7 +28,7 @@ class ProcDataset(Dataset):
 class Train:
     def __init__(self, model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16,
                  early_stop=3, device='cuda', write_path='model.pt', eval_mode='develop',
-                 pretrained_model='multilingual', log_path='logs', relations_positive_negative=False):
+                 pretrained_model='multilingual', log_path='logs', relations_positive_negative=False, relations_inv=False):
         self.epochs = epochs
         self.batch_size = batch_size
         self.batch_status = batch_status
@@ -50,6 +50,15 @@ class Train:
         self.eval_mode = eval_mode
         self.pretrained_model = pretrained_model
 
+        self.relations_inv = relations_inv
+        self.entities = utils.ENTITIES
+        self.relations = utils.RELATIONS
+        self.entity_w2id = utils.entity_w2id
+        self.relation_w2id = utils.relation_w2id
+        if relations_inv:
+            self.relations = utils.RELATIONS_INV
+            self.relation_w2id = utils.relation_inv_w2id
+
         # only use relations_positive_negative for train data
         self.traindata = DataLoader(self.preprocess(traindata, relations_positive_negative=relations_positive_negative),
                                     batch_size=batch_size, shuffle=True)
@@ -62,8 +71,7 @@ class Train:
                                                                                                    self.eval_mode,
                                                                                                    self.pretrained_model)
 
-    @staticmethod
-    def _get_relations_data(row):
+    def _get_relations_data(self, row):
         sameas, relation, relation_type = [], [], []
         nrelations = 0
         for relation_ in row['relations']:
@@ -75,12 +83,12 @@ class Train:
                 arg2_idx0 = row['keyphrases'][str(arg2)]['idxs'][0]
 
                 label = relation_['label']
-                if label == 'same-as':
+                if label == 'same-as' or label == 'same-as_INV':
                     sameas.append((arg1_idx0, arg2_idx0, 1))
                     sameas.append((arg2_idx0, arg1_idx0, 1))
                 else:
                     relation.append((arg1_idx0, arg2_idx0, 1))
-                    relation_type.append((arg1_idx0, arg2_idx0, utils.relation_w2id[label]))
+                    relation_type.append((arg1_idx0, arg2_idx0, self.relation_w2id[label]))
                     # negative same-as relation
                     sameas.append((arg1_idx0, arg2_idx0, 0))
                     sameas.append((arg2_idx0, arg1_idx0, 0))
@@ -103,8 +111,7 @@ class Train:
                     nrelations += 1
         return sameas, relation, relation_type
 
-    @staticmethod
-    def _get_relations_positive_negative_data(row):
+    def _get_relations_positive_negative_data(self, row):
         sameas, relation, relation_type = [], [], []
         for relation_ in row['relations_positive_negative']:
             try:
@@ -115,7 +122,7 @@ class Train:
                 arg2_idx0 = row['keyphrases'][str(arg2)]['idxs'][0]
 
                 label = relation_['label']
-                if label == 'same-as':
+                if label == 'same-as' or label == 'same-as_INV':
                     sameas.append((arg1_idx0, arg2_idx0, 1))
                     sameas.append((arg2_idx0, arg1_idx0, 1))
                 else:
@@ -123,7 +130,7 @@ class Train:
                         relation.append((arg1_idx0, arg2_idx0, 0))
                     else:
                         relation.append((arg1_idx0, arg2_idx0, 1))
-                        relation_type.append((arg1_idx0, arg2_idx0, utils.relation_w2id[label]))
+                        relation_type.append((arg1_idx0, arg2_idx0, self.relation_w2id[label]))
                     # negative same-as relation
                     sameas.append((arg1_idx0, arg2_idx0, 0))
                     sameas.append((arg2_idx0, arg1_idx0, 0))
@@ -148,7 +155,7 @@ class Train:
                     idxs = keyphrase['idxs']
 
                     # mark only first subword with entity type
-                    label_idx = utils.entity_w2id[keyphrase['label']]
+                    label_idx = self.entity_w2id[keyphrase['label']]
                     for idx in idxs:
                         if not tokens[idx].startswith('##'):
                             entity[idx] = label_idx
@@ -482,8 +489,8 @@ class Train:
             relation_true.extend(relation_type_true)
             relation_pred.extend(relation_type_pred)
 
-        entity_labels = list(range(1, len(utils.ENTITIES)))
-        entity_target_names = utils.ENTITIES[1:]
+        entity_labels = list(range(1, len(self.entities)))
+        entity_target_names = self.entities[1:]
         print("Entity report:")
         print(classification_report(_get_single_output_id_list(entity_true), _get_single_output_id_list(entity_pred),
                                     labels=entity_labels, target_names=entity_target_names))
@@ -497,8 +504,8 @@ class Train:
         print(classification_report(is_related_true, is_related_pred))
         print()
 
-        relation_labels = list(range(len(utils.RELATIONS)))
-        relation_target_names = utils.RELATIONS
+        relation_labels = list(range(len(self.relations)))
+        relation_target_names = self.relations
         print("Relation type report")
         print(classification_report(relation_true, relation_pred, labels=relation_labels,
                                     target_names=relation_target_names))
@@ -563,7 +570,7 @@ class Train:
                 os.makedirs(output_path)
 
             c = get_collection(devdata, entity_pred, multiword_pred, sameas_pred, related_pred,
-                                              relation_pred)
+                               relation_pred, relations_inv=self.relations_inv)
             output_file_name = output_path + 'output.txt'
             c.dump(Path(output_file_name))
         command_text = "python3 data/scripts/score.py --gold {0} --submit {1}".format(devdata_folder, output_folder)
