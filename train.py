@@ -28,7 +28,7 @@ class ProcDataset(Dataset):
 class Train:
     def __init__(self, model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16,
                  early_stop=3, device='cuda', write_path='model.pt', eval_mode='develop',
-                 pretrained_model='multilingual', log_path='logs', relations_positive_negative=False):
+                 pretrained_model='multilingual', log_path='logs', relations_positive_negative=False, relations_inv=False):
         self.epochs = epochs
         self.batch_size = batch_size
         self.batch_status = batch_status
@@ -50,6 +50,15 @@ class Train:
         self.eval_mode = eval_mode
         self.pretrained_model = pretrained_model
 
+        self.relations_inv = relations_inv
+        self.entities = utils.ENTITIES
+        self.relations = utils.RELATIONS
+        self.entity_w2id = utils.entity_w2id
+        self.relation_w2id = utils.relation_w2id
+        if relations_inv:
+            self.relations = utils.RELATIONS_INV
+            self.relation_w2id = utils.relation_inv_w2id
+
         # only use relations_positive_negative for train data
         self.traindata = DataLoader(self.preprocess(traindata, relations_positive_negative=relations_positive_negative),
                                     batch_size=batch_size, shuffle=True)
@@ -62,6 +71,8 @@ class Train:
                                                                                                    self.eval_mode,
                                                                                                    self.pretrained_model)
 
+    def _get_relations_data(self, row):
+        sameas, relation, relation_type = [], [], []
     @staticmethod
     def _get_relations_data(row):
         relation, relation_type = [], []
@@ -96,6 +107,8 @@ class Train:
                     nrelations += 1
         return relation, relation_type
 
+    def _get_relations_positive_negative_data(self, row):
+        sameas, relation, relation_type = [], [], []
     @staticmethod
     def _get_relations_positive_negative_data(row):
         relation, relation_type = [], []
