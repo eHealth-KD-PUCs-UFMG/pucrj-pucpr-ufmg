@@ -8,7 +8,7 @@ import os
 from shutil import copyfile
 from pathlib import Path
 
-from utils import relation_w2id, entity_w2id, ENTITIES, RELATIONS
+import utils
 from postprocessing import get_collection
 
 class ProcDataset(Dataset):
@@ -72,9 +72,6 @@ class Train:
                                                                                                    self.pretrained_model)
 
     def _get_relations_data(self, row):
-        sameas, relation, relation_type = [], [], []
-    @staticmethod
-    def _get_relations_data(row):
         relation, relation_type = [], []
         nrelations = 0
         for relation_ in row['relations']:
@@ -87,7 +84,7 @@ class Train:
 
                 label = relation_['label']
                 relation.append((arg1_idx0, arg2_idx0, 1))
-                relation_type.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
+                relation_type.append((arg1_idx0, arg2_idx0, self.relation_w2id[label]))
             except:
                 pass
 
@@ -107,10 +104,8 @@ class Train:
                     nrelations += 1
         return relation, relation_type
 
+
     def _get_relations_positive_negative_data(self, row):
-        sameas, relation, relation_type = [], [], []
-    @staticmethod
-    def _get_relations_positive_negative_data(row):
         relation, relation_type = [], []
         for relation_ in row['relations_positive_negative']:
             try:
@@ -125,7 +120,7 @@ class Train:
                     relation.append((arg1_idx0, arg2_idx0, 0))
                 else:
                     relation.append((arg1_idx0, arg2_idx0, 1))
-                    relation_type.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
+                    relation_type.append((arg1_idx0, arg2_idx0, self.relation_w2id[label]))
             except:
                 pass
         return relation, relation_type
@@ -146,8 +141,8 @@ class Train:
                     idxs = keyphrase['idxs']
 
                     # mark only first subword with entity type
-                    label_begin_idx = entity_w2id['B-' + keyphrase['label']]
-                    label_internal_idx = entity_w2id['I-' + keyphrase['label']]
+                    label_begin_idx = self.entity_w2id['B-' + keyphrase['label']]
+                    label_internal_idx = self.entity_w2id['I-' + keyphrase['label']]
                     first = True
                     for idx in idxs:
                         if not tokens[idx].startswith('##'):
@@ -381,8 +376,8 @@ class Train:
             relation_true.extend(relation_type_true)
             relation_pred.extend(relation_type_pred)
 
-        entity_labels = list(range(1, len(ENTITIES)))
-        entity_target_names = ENTITIES[1:]
+        entity_labels = list(range(1, len(self.entities)))
+        entity_target_names = self.entities[1:]
         print("Entity report:")
         print(classification_report(_get_single_output_id_list(entity_true), _get_single_output_id_list(entity_pred),
                                     labels=entity_labels, target_names=entity_target_names))
@@ -392,8 +387,8 @@ class Train:
         print(classification_report(is_related_true, is_related_pred))
         print()
 
-        relation_labels = list(range(len(RELATIONS)))
-        relation_target_names = RELATIONS
+        relation_labels = list(range(len(self.relations)))
+        relation_target_names = self.relations
         print("Relation type report")
         print(classification_report(relation_true, relation_pred, labels=relation_labels,
                                     target_names=relation_target_names))
