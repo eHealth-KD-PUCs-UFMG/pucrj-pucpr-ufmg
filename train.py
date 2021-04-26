@@ -442,7 +442,8 @@ class Train:
             if not os.path.exists(output_path):
                 os.makedirs(output_path)
 
-            c = postprocessing.get_collection(devdata, entity_pred, related_pred, relation_pred)
+            c = postprocessing.get_collection(devdata, entity_pred, related_pred, relation_pred,
+                                              relations_inv=self.relations_inv)
             output_file_name = output_path + 'output.txt'
             c.dump(Path(output_file_name))
         command_text = "python3 data/scripts/score.py --gold {0} --submit {1}".format(devdata_folder, output_folder)
