@@ -7,19 +7,22 @@ Modelo: multilingual
 [Download Model.pt](https://drive.google.com/file/d/1k84X84c2_yzK-wKcATnLf76bTJkTqMrn/view?usp=sharing)
 
 
-Resultados (50 épocas):
+## Resultados (50 épocas):
 
 Entity report:
-              precision    recall  f1-score   support
 
-   B-Concept       0.73      0.85      0.79       634
-   I-Concept       0.76      0.66      0.71       323
-    B-Action       0.64      0.78      0.70       175
-    I-Action       0.00      0.00      0.00         4
- B-Predicate       0.39      0.60      0.47        53
- I-Predicate       0.40      0.44      0.42         9
- B-Reference       0.40      0.36      0.38        11
- I-Reference       0.00      0.00      0.00         0
+| precision | recall | f1-score  | support |
+|------|------|------|------|
+|B-Concept|0.73|0.85|0.79|634|
+|I-Concept|0.76|0.66|0.71|323|
+|B-Action|0.64|0.78|0.70|175|
+|I-Action|0.00|0.00|0.00|4|
+|B-Predicate|0.39|0.60|0.47|53|
+|I-Predicate|0.40|0.44|0.42|9|
+|B-Reference|0.40|0.36|0.38|11|
+|I-Reference|0.00|0.00|0.00|0|
+
+
 
    micro avg       0.70      0.77      0.73      1209
    macro avg       0.41      0.46      0.43      1209
