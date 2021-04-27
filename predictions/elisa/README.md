@@ -22,15 +22,14 @@ Entity report:
 |B-Reference|0.40|0.36|0.38|11|
 |I-Reference|0.00|0.00|0.00|0|
 
+| precision | recall | f1-score  | support |
+|------|------|------|------|
+macro avg|0.70|0.77|0.73|1209|
+macro avg|0.41|0.46|0.43|1209|
+weighted avg|0.70|0.77|0.73|1209|
 
-
-   micro avg       0.70      0.77      0.73      1209
+         
    
-   macro avg       0.41      0.46      0.43      1209
-   
-weighted avg       0.70      0.77      0.73      1209
-
-
 Is related report:
               precision    recall  f1-score   support
 
