@@ -13,6 +13,7 @@ from pathlib import Path
 import time
 from shutil import copyfile
 import pandas as pd
+from torch.optim.lr_scheduler import LambdaLR
 
 BATCH_STATUS=64
 EPOCH=30
@@ -33,7 +34,11 @@ if __name__ == '__main__':
         devset = json.load(open('data/original/ref/develop/input_multilingual.json'))
         model = Vicomtech(pretrained_model_path='bert-base-multilingual-cased')
     model.to(device)
-    optimizer = optim.AdamW(model.parameters(), lr=LEARNING_RATE)
+
+    initial_lr = LEARNING_RATE / 10
+    optimizer = optim.AdamW(model.parameters(), lr=initial_lr)
+    lmbda = lambda epoch: min(10, epoch + 1)
+    scheduler = LambdaLR(optimizer, lr_lambda=lmbda)
 
     loss_func = MultiTaskLossWrapper(2)
     loss_func.to(device)
@@ -41,11 +46,11 @@ if __name__ == '__main__':
     
     criterion = nn.NLLLoss()
 
-    trainer = Train(model, criterion, optimizer, trainset, devset, EPOCH, BATCH_SIZE, early_stop=EARLY_STOP, pretrained_model=PRETRAINED_MODEL, batch_status=BATCH_STATUS, task='entity')
+    trainer = Train(model, criterion, optimizer, scheduler, trainset, devset, EPOCH, BATCH_SIZE, early_stop=EARLY_STOP, pretrained_model=PRETRAINED_MODEL, batch_status=BATCH_STATUS, task='entity')
     trainer.train()
 
-    trainer = Train(model, criterion, optimizer, trainset, devset, EPOCH, BATCH_SIZE, early_stop=EARLY_STOP, pretrained_model=PRETRAINED_MODEL, batch_status=BATCH_STATUS, task='relation')
+    trainer = Train(model, criterion, optimizer, scheduler, trainset, devset, EPOCH, BATCH_SIZE, early_stop=EARLY_STOP, pretrained_model=PRETRAINED_MODEL, batch_status=BATCH_STATUS, task='relation')
     trainer.train()
     
-    trainer = Train(model, criterion, optimizer, trainset, devset, EPOCH, BATCH_SIZE, early_stop=EARLY_STOP, pretrained_model=PRETRAINED_MODEL, batch_status=BATCH_STATUS, task='entity+relation', loss_func=loss_func, loss_optimizer=loss_optimizer)
+    trainer = Train(model, criterion, optimizer, scheduler, trainset, devset, EPOCH, BATCH_SIZE, early_stop=EARLY_STOP, pretrained_model=PRETRAINED_MODEL, batch_status=BATCH_STATUS, task='entity+relation', loss_func=loss_func, loss_optimizer=loss_optimizer)
     trainer.train()
