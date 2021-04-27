@@ -32,15 +32,17 @@ if __name__ == '__main__':
         trainset = json.load(open('data/original/ref/training/input_multilingual.json'))
         devset = json.load(open('data/original/ref/develop/input_multilingual.json'))
         model = Vicomtech(pretrained_model_path='bert-base-multilingual-cased')
-    loss_func = MultiTaskLossWrapper(2)
-
     model.to(device)
-    loss_func.to(device)
-
-    loss_optimizer = optim.AdamW(loss_func.parameters(), lr=LEARNING_RATE)
     optimizer = optim.AdamW(model.parameters(), lr=LEARNING_RATE)
+
+    # loss_func = MultiTaskLossWrapper(2)
+    # loss_func.to(device)
+    # loss_optimizer = optim.AdamW(loss_func.parameters(), lr=LEARNING_RATE)
     
     criterion = nn.NLLLoss()
 
-    trainer = Train(model, criterion, optimizer, loss_func, loss_optimizer, trainset, devset, EPOCH, BATCH_SIZE, early_stop=EARLY_STOP, pretrained_model=PRETRAINED_MODEL, batch_status=BATCH_STATUS)
+    trainer = Train(model, criterion, optimizer, trainset, devset, EPOCH, BATCH_SIZE, early_stop=EARLY_STOP, pretrained_model=PRETRAINED_MODEL, batch_status=BATCH_STATUS, task='entity')
+    trainer.train()
+
+    trainer = Train(model, criterion, optimizer, trainset, devset, EPOCH, BATCH_SIZE, early_stop=EARLY_STOP, pretrained_model=PRETRAINED_MODEL, batch_status=BATCH_STATUS, task='relation')
     trainer.train()

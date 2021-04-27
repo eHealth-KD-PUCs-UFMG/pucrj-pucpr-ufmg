@@ -26,24 +26,37 @@ class ProcDataset(Dataset):
         return self.data[idx]
 
 class Train:
-    def __init__(self, model, criterion, optimizer, loss_func, loss_optimizer, traindata, devdata, epochs, batch_size, batch_status=16,
+    def __init__(self, model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16,
                  early_stop=3, device='cuda', write_path='model.pt', eval_mode='develop',
-                 pretrained_model='multilingual', log_path='logs', relations_positive_negative=False, relations_inv=False):
+                 pretrained_model='multilingual', log_path='logs', relations_positive_negative=False, relations_inv=False, task='entity+relation', loss_func=None, loss_optimizer=None):
         self.epochs = epochs
         self.batch_size = batch_size
         self.batch_status = batch_status
         self.early_stop = early_stop
         self.device = device
+        self.task = task
 
         self.traindata = traindata
         self.devdata = devdata
 
         self.model = model
+        # set grad requirement based on the task
+        if self.task == 'entity':
+            for param in self.model.distil_layer.parameters():
+                param.requires_grad = False
+            for param in self.model.related_classifier.parameters():
+                param.requires_grad = False
+            self.scenario = 2
+        elif self.task == 'relation':
+            for param in self.model.entity_classifier.parameters():
+                param.requires_grad = False
+            self.scenario = 3
+        else:
+            self.loss_func = loss_func
+            self.loss_optimizer = loss_optimizer
+            self.scenario = 1
         self.criterion = criterion
         self.optimizer = optimizer
-
-        self.loss_func = loss_func
-        self.loss_optimizer = loss_optimizer
 
         self.write_path = write_path
         self.log_path = log_path
@@ -185,8 +198,13 @@ class Train:
 
         relation_loss = self.criterion(related_probs.view(batch*seq_len, dim), relation_real.view(-1))
 
-        loss = self.loss_func(entity_loss, relation_loss)
-        return loss
+        if self.task == 'entity':
+            return entity_loss
+        elif self.task == 'relation':
+            return relation_loss
+        else:
+            loss = self.loss_func(entity_loss, relation_loss)
+            return loss
 
     def compute_loss(self, entity_probs, batch_entity, related_probs, batch_relation):
         # entity loss
@@ -219,8 +237,13 @@ class Train:
         except:
             relation_loss = 0
 
-        loss = self.loss_func(entity_loss, relation_loss)
-        return loss
+        if self.task == 'entity':
+            return entity_loss
+        elif self.task == 'relation':
+            return relation_loss
+        else:
+            loss = self.loss_func(entity_loss, relation_loss)
+            return loss
 
     def train(self):
         max_f1_score = self.eval()
@@ -235,7 +258,8 @@ class Train:
                 entity_probs, related_probs = self.model(batch_X)
 
                 self.optimizer.zero_grad()
-                self.loss_optimizer.zero_grad()
+                if self.loss_optimizer:
+                    self.loss_optimizer.zero_grad()
 
                 # Calculate loss
                 batch_entity = torch.tensor([inp['entity']])
@@ -249,7 +273,8 @@ class Train:
                 # Backpropagation
                 loss.backward()
                 self.optimizer.step()
-                self.loss_optimizer.step()
+                if self.loss_optimizer:
+                    self.loss_optimizer.step()
 
                 # Display
                 if (batch_idx + 1) % self.batch_status == 0:
