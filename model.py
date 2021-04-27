@@ -54,15 +54,15 @@ class Vicomtech(nn.Module):
             vocab_size=self.tokenizer.vocab_size
         else:
             vocab_size=len(self.tokenizer.vocab)
-        configuration = DistilBertConfig(vocab_size=vocab_size, n_layers=distilbert_nlayers, n_heads=distilbert_nheads)
-        self.distilbert = DistilBertModel(configuration)
+        # configuration = DistilBertConfig(vocab_size=vocab_size, n_layers=distilbert_nlayers, n_heads=distilbert_nheads)
+        # self.distilbert = DistilBertModel(configuration)
 
         # linear projections
         self.entity_classifier = Classifier(hdim, edim)
 
-        self.related_classifier = Classifier(hdim, 2)
+        self.related_classifier = Classifier(hdim, rdim)
 
-        self.relation_type_classifier = Classifier(hdim+2, rdim)
+        # self.relation_type_classifier = Classifier(hdim+2, rdim)
 
     def forward(self, texts):
         # part 1
@@ -85,17 +85,32 @@ class Vicomtech(nn.Module):
             embent_embent[:, seq_len*i:seq_len*i+seq_len, :] = m2
 
         # thiago addition to adequate dimensions from step 3 to 4
-        inp_distilbert = self.tanh(self.distil_layer(embent_embent))
+        ssd = self.tanh(self.distil_layer(embent_embent))
         # part 4
-        ssd = self.distilbert(inputs_embeds=inp_distilbert)['last_hidden_state']
+        # ssd = self.distilbert(inputs_embeds=inp_distilbert)['last_hidden_state']
 
         # part 7
         logits, related = self.related_classifier(ssd)
 
-        # part 8
-        incoming_outgoing = torch.cat([ssd, logits], 2)
-        # part 9
-        _, related_type = self.relation_type_classifier(incoming_outgoing)
+        # # part 8
+        # incoming_outgoing = torch.cat([ssd, logits], 2)
+        # # part 9
+        # _, related_type = self.relation_type_classifier(incoming_outgoing)
 
-        return entity, related, related_type
+        return entity, related#, related_type
 
+class MultiTaskLossWrapper(nn.Module):
+    def __init__(self, task_num):
+        super(MultiTaskLossWrapper, self).__init__()
+        self.task_num = task_num
+        self.log_vars = nn.Parameter(torch.zeros((task_num)))
+
+    def forward(self, entity_loss, relation_loss):
+
+        precision0 = torch.exp(-self.log_vars[0])
+        loss0 = precision0*entity_loss + self.log_vars[0]
+
+        precision1 = torch.exp(-self.log_vars[1])
+        loss1 = precision1*relation_loss + self.log_vars[1]
+        
+        return loss0+loss1

@@ -76,21 +76,20 @@ def check_if_contiguous_entity(index, entity_id, entity_list, tokens):
                 and entity_id2w[entity_list[index + 1]].startswith('I-'))
                 or not check_valid_token(tokens[index + 1]))
 
-def get_collection(preprocessed_dataset, entity, related, relation_type):
+def get_collection(preprocessed_dataset, entity, related):
     c = Collection()
     global_entity_id = 0
-    for row, entity_list, related_list, relation_type_list in zip(preprocessed_dataset, entity, related, relation_type):
+    for row, entity_list, related_list in zip(preprocessed_dataset, entity, related):
         if isinstance(entity_list, torch.Tensor):
             entity_list = entity_list.detach().cpu().numpy()
             related_list = related_list.detach().cpu().numpy()
-            relation_type_list = relation_type_list.detach().cpu().numpy()
         sentence_text = row['text']
         sentence = Sentence(sentence_text)
         tokens = row['tokens']
         # print(tokens)
         # print(entity_list)
         # print(multiword_list)
-        relation_type_list = filter_relations_using_related(relation_type_list, related_list)
+        # relation_type_list = filter_relations_using_related(relation_type_list, related_list)
         # print(multiword_dict)
         last_pos = 0
         token_index_to_entity_id = {}
@@ -135,7 +134,7 @@ def get_collection(preprocessed_dataset, entity, related, relation_type):
             index += 1
         discard_entities(sentence)
 
-        add_relations(sentence, relation_type_list, token_index_to_entity_id, relation_id2w)
+        add_relations(sentence, related_list, token_index_to_entity_id, relation_id2w)
 
         c.sentences.append(sentence)
     return c
