@@ -29,6 +29,7 @@ Entity report:
 |weighted avg|0.70|0.77|0.73|1209|
 
 Is related report:
+
 | precision | recall | f1-score  | support |
 |------|------|------|------|
 |0|0.90|0.99|0.94|6120         
@@ -40,7 +41,7 @@ Is related report:
 
 Relation type report
 
-| precision | recall | f1-score  | support |
+| entity | precision | recall | f1-score  | support |
 |------|------|------|------|------|
 |is-a|0.69|0.79|0.74|67|
 |part-of|0.62|0.21|0.31|24|
