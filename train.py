@@ -354,8 +354,8 @@ class Train:
                                     labels=entity_labels, target_names=entity_target_names))
         print()
 
-        relation_labels = list(range(len(self.relations)))
-        relation_target_names = self.relations
+        relation_labels = list(range(1, len(self.relations)))
+        relation_target_names = self.relations[1:]
         print("Is related report:")
         print(classification_report(is_related_true, is_related_pred, labels=relation_labels,
                                     target_names=relation_target_names))
