@@ -26,7 +26,7 @@ class ProcDataset(Dataset):
         return self.data[idx]
 
 class Train:
-    def __init__(self, model, criterion, optimizer, traindata, devdata, epochs, batch_size, batch_status=16,
+    def __init__(self, model, criterion, optimizer, scheduler, traindata, devdata, epochs, batch_size, batch_status=16,
                  early_stop=3, device='cuda', write_path='model.pt', eval_mode='develop',
                  pretrained_model='multilingual', log_path='logs', relations_positive_negative=False, relations_inv=False):
         self.epochs = epochs
@@ -41,6 +41,7 @@ class Train:
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
+        self.scheduler = scheduler
 
         self.write_path = write_path
         self.log_path = log_path
@@ -312,9 +313,11 @@ class Train:
 
                 # Display
                 if (batch_idx + 1) % self.batch_status == 0:
+                    print('Scheduler LR: {}'.format(self.scheduler.get_last_lr()))
                     print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tTotal Loss: {:.6f}'.format(
                         epoch, batch_idx + 1, len(self.traindata),
                                100. * batch_idx / len(self.traindata), float(loss), round(sum(losses) / len(losses), 5)))
+            self.scheduler.step()
 
             # evaluating
             self.eval_class_report()
