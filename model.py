@@ -2,9 +2,10 @@
 from transformers import AutoTokenizer  # Or BertTokenizer
 from transformers import AutoModel  # or BertModel, for BERT without pretraining heads
 from transformers import DistilBertModel, DistilBertConfig
+from transformers import MT5EncoderModel, T5Tokenizer
 import torch
 import torch.nn as nn
-from utils import ENTITIES, RELATIONS
+import utils
 
 class Classifier(nn.Module):
     def __init__(self, input_dim, output_dim):
@@ -27,7 +28,7 @@ class Classifier(nn.Module):
 
 class Vicomtech(nn.Module):
     def __init__(self, pretrained_model_path='dccuchile/bert-base-spanish-wwm-cased',
-                 hdim=768, edim=len(ENTITIES), rdim=len(RELATIONS),
+                 hdim=768, edim=len(utils.ENTITIES), rdim=len(utils.RELATIONS),
                  distilbert_nlayers=2, distilbert_nheads=2, device='cuda', max_length=128):
         super(Vicomtech, self).__init__()
         self.hdim = hdim
@@ -35,24 +36,29 @@ class Vicomtech(nn.Module):
         self.rdim = rdim
         self.device = device
         self.max_length = max_length
-        
+        self.pretrained_model_path = pretrained_model_path
+
         # BETO
-        self.tokenizer = AutoTokenizer.from_pretrained(pretrained_model_path, do_lower_case=False)
-        self.beto = AutoModel.from_pretrained(pretrained_model_path)
+        if 'mt5' in pretrained_model_path:
+            # google/mt5-base
+            self.beto = MT5EncoderModel.from_pretrained(pretrained_model_path)
+            self.tokenizer = T5Tokenizer.from_pretrained(pretrained_model_path)
+        else:
+            self.tokenizer = AutoTokenizer.from_pretrained(pretrained_model_path, do_lower_case=False)
+            self.beto = AutoModel.from_pretrained(pretrained_model_path)
 
         # DistilBERT
         self.distil_layer = nn.Linear(2*(hdim+edim), hdim)
         self.tanh = nn.Tanh()
-        configuration = DistilBertConfig(vocab_size=len(self.tokenizer.vocab), 
-                                        n_layers=distilbert_nlayers, n_heads=distilbert_nheads)
+        if 'mt5' in self.pretrained_model_path:
+            vocab_size=self.tokenizer.vocab_size
+        else:
+            vocab_size=len(self.tokenizer.vocab)
+        configuration = DistilBertConfig(vocab_size=vocab_size, n_layers=distilbert_nlayers, n_heads=distilbert_nheads)
         self.distilbert = DistilBertModel(configuration)
 
         # linear projections
         self.entity_classifier = Classifier(hdim, edim)
-
-        self.multiword_classifier = Classifier(hdim, 2)
-
-        self.sameas_classifier = Classifier(hdim, 2)
 
         self.related_classifier = Classifier(hdim, 2)
 
@@ -83,10 +89,6 @@ class Vicomtech(nn.Module):
         # part 4
         ssd = self.distilbert(inputs_embeds=inp_distilbert)['last_hidden_state']
 
-        # part 5
-        _, multiword = self.multiword_classifier(ssd)
-        # part 6
-        _, sameas = self.sameas_classifier(ssd)
         # part 7
         logits, related = self.related_classifier(ssd)
 
@@ -95,7 +97,7 @@ class Vicomtech(nn.Module):
         # part 9
         _, related_type = self.relation_type_classifier(incoming_outgoing)
 
-        return entity, multiword, sameas, related, related_type
+        return entity, related, related_type
 
 class EntityModel(nn.Module):
     def __init__(self, tokenizer, pretrained_model, hdim=768, edim=len(ENTITIES), device='cuda', max_length=128):

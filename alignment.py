@@ -1,4 +1,5 @@
 from transformers import AutoTokenizer  # Or BertTokenizer
+from transformers import T5Tokenizer
 from data.scripts.anntools import Collection
 from pathlib import Path
 import json
@@ -19,8 +20,8 @@ def extract_keyphrases(keyphrases, text, tokens):
                 idxs.append(i)
                 ponteiro += 1
                 cmp_token, cmp_idxs = [], []
-            elif token.replace('##', '') in ktokens[ponteiro]:
-                cmp_token.append(token.replace('##', ''))
+            elif token.replace('##', '').replace('▁', '') in ktokens[ponteiro]:
+                cmp_token.append(token.replace('##', '').replace('▁', ''))
                 cmp_idxs.append(i)
                 for j in range(len(cmp_token)):
                     if ''.join(cmp_token[j:]) == ktokens[ponteiro]:
@@ -50,10 +51,20 @@ def extract_keyphrases(keyphrases, text, tokens):
     return tags
 
 
-def add_data(c, data, tokenizer, ref=None):
+def add_data(c, data, tokenizer, ref=None, is_mt5=False):
     for i, instance in enumerate(c.sentences):
         text = instance.text
         tokens = tokenizer.convert_ids_to_tokens(tokenizer(text)['input_ids'])
+        if is_mt5:
+            new_tokens = []
+            for token in tokens:
+                if token.startswith('▁'):
+                    new_tokens.append(token.replace('▁', ''))
+                elif token == '</s>':
+                    new_tokens.append('[SEP]')
+                else:
+                    new_tokens.append('##' + token)
+            tokens = new_tokens
 
         keyphrases = extract_keyphrases(instance.keyphrases, text, tokens)
 
@@ -83,9 +94,14 @@ def run():
         input_path = config_file['input_path']
         output_file_name = config_file['output_file_name']
         is_ref = config_file['is_ref']
+        is_test = config_file['is_test']
 
-    tokenizer = AutoTokenizer.from_pretrained(pretrained_model_path, do_lower_case=False)
-
+    is_mt5 = False
+    if 'mt5' in pretrained_model_path:
+        tokenizer = T5Tokenizer.from_pretrained(pretrained_model_path)
+        is_mt5 = True
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(pretrained_model_path, do_lower_case=False)
 
     data = []
     if is_ref:
@@ -97,12 +113,18 @@ def run():
             ref = {'language': language, 'domain': domain}
             c = Collection()
             c.load(fname)
-            add_data(c, data, tokenizer, ref)
+            add_data(c, data, tokenizer, ref, is_mt5=is_mt5)
     else:
         c = Collection()
-        c.load(Path(input_path + 'output.txt'))
-        add_data(c, data, tokenizer)
+        if is_test:
+            c.load(Path(input_path + 'input.txt'))
+        else:
+            c.load(Path(input_path + 'output.txt'))
+        add_data(c, data, tokenizer, is_mt5=is_mt5)
 
     # Create output files
     json.dump(data, open(input_path + output_file_name, 'w'), sort_keys=True, indent=4,
               separators=(',', ':'))
+
+if __name__ == '__main__':
+    run()
