@@ -24,25 +24,19 @@ Entity report:
 
 | precision | recall | f1-score  | support |
 |------|------|------|------|
-macro avg|0.70|0.77|0.73|1209|
-macro avg|0.41|0.46|0.43|1209|
-weighted avg|0.70|0.77|0.73|1209|
+|macro avg|0.70|0.77|0.73|1209|
+|macro avg|0.41|0.46|0.43|1209|
+|weighted avg|0.70|0.77|0.73|1209|
 
-         
-   
 Is related report:
-              precision    recall  f1-score   support
-
-           0       0.90      0.99      0.94      6120
-           
-           1       0.71      0.22      0.33       850
-
-    accuracy                           0.89      6970
+| precision | recall | f1-score  | support |
+|------|------|------|------|
+|0|0.90|0.99|0.94|6120         
+|1|0.71|0.22|0.33|850         
+|accuracy|||0.89|6970
+|macro avg|0.81|0.60|0.64|6970
+|weighted avg|0.88|0.89|0.87|6970
     
-   macro avg       0.81      0.60      0.64      6970
-   
-weighted avg       0.88      0.89      0.87      6970
-
 
 Relation type report
               precision    recall  f1-score   support
