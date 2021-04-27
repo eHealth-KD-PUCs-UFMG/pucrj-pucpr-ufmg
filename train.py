@@ -48,13 +48,23 @@ class Train:
                 param.requires_grad = False
             self.scenario = 2
         elif self.task == 'relation':
+            for param in self.model.distil_layer.parameters():
+                param.requires_grad = True
+            for param in self.model.related_classifier.parameters():
+                param.requires_grad = True
             for param in self.model.entity_classifier.parameters():
                 param.requires_grad = False
             self.scenario = 3
         else:
-            self.loss_func = loss_func
-            self.loss_optimizer = loss_optimizer
+            for param in self.model.distil_layer.parameters():
+                param.requires_grad = True
+            for param in self.model.related_classifier.parameters():
+                param.requires_grad = True
+            for param in self.model.entity_classifier.parameters():
+                param.requires_grad = True
             self.scenario = 1
+        self.loss_func = loss_func
+        self.loss_optimizer = loss_optimizer
         self.criterion = criterion
         self.optimizer = optimizer
 
@@ -404,9 +414,12 @@ class Train:
         with open(result_file_name, 'r') as f:
             print('Evaluation:')
             print(f.read())
+        isScenario = False
         with open(result_file_name, 'r') as f:
             for line in f:
-                if line.startswith("f1:"):
+                if 'scenario ' + str(self.scenario) in line:
+                    isScenario = True
+                if isScenario and line.startswith("f1:"):
                     f1_score = float(line.split(':')[-1].strip())
                     break
         return f1_score
