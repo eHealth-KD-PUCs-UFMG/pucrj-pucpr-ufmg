@@ -100,7 +100,7 @@ class Vicomtech(nn.Module):
         return entity, related, related_type
 
 class EntityModel(nn.Module):
-    def __init__(self, tokenizer, pretrained_model, hdim=768, edim=len(ENTITIES), device='cuda', max_length=128):
+    def __init__(self, tokenizer, pretrained_model, hdim=768, edim=len(utils.ENTITIES), device='cuda', max_length=128):
         super(EntityModel, self).__init__()
         self.edim = edim
         self.device = device
@@ -129,7 +129,7 @@ class EntityModel(nn.Module):
         return entity, embeddings_entity
 
 class RelationModel(nn.Module):
-    def __init__(self, vocab_size, hdim=768, edim=len(ENTITIES), rdim=len(RELATIONS),
+    def __init__(self, vocab_size, hdim=768, edim=len(utils.ENTITIES), rdim=len(utils.RELATIONS),
                  distilbert_nlayers=2, distilbert_nheads=2, device='cuda'):
         super(RelationModel, self).__init__()
         self.hdim = hdim
