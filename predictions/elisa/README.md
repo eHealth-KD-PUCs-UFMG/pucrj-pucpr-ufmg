@@ -39,40 +39,26 @@ Is related report:
     
 
 Relation type report
-              precision    recall  f1-score   support
 
-        is-a       0.69      0.79      0.74        67
-        
-     part-of       0.62      0.21      0.31        24
-     
-has-property       0.79      0.28      0.41        82
-
-      causes       0.76      0.70      0.73        27
-      
-     entails       0.29      0.14      0.19        14
-     
-  in-context       0.56      0.45      0.50       197
-  
-    in-place       0.62      0.56      0.59        63
-    
-     in-time       0.52      0.68      0.59        25
-     
-     subject       0.74      0.67      0.70       103
-     
-      target       0.60      0.87      0.71       162
-      
-      domain       0.73      0.81      0.77        37
-      
-         arg       0.32      0.56      0.41        25
-         
-     same-as       0.25      0.64      0.36        11
-
-    accuracy                           0.60       837
-    
-   macro avg       0.58      0.57      0.54       837
-   
-weighted avg       0.63      0.60      0.59       837
-
+| precision | recall | f1-score  | support |
+|------|------|------|------|------|
+|is-a|0.69|0.79|0.74|67|
+|part-of|0.62|0.21|0.31|24|
+|has-property|0.79|0.28|0.41|82|
+|causes|0.76|0.70|0.73|27|
+|entails|0.29|0.14|0.19|14|
+|in-context|0.56|0.45|0.50|197|
+|in-place|0.62|0.56|0.59|63|
+|in-time|0.52|0.68|0.59|25|
+|subject|0.74|0.67|0.70|103|
+|target|0.60|0.87|0.71|162|
+|domain|0.73|0.81|0.77|37|
+|arg|0.32|0.56|0.41|25|
+|same-as|0.25|0.64|0.36|11|
+|accuracy||0.60|837|
+|macro avg|0.58|0.57|0.54|837|
+|weighted avg|0.63|0.60|0.59|837|
+             
 
 Evaluation:
 
