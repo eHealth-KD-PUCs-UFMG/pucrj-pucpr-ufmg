@@ -19,7 +19,7 @@ RELATIONS = [
 ]
 
 RELATIONS_INV = [
-    # "O",
+    "NONE",
     "is-a",
     "part-of",
     "has-property",

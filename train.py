@@ -85,7 +85,7 @@ class Train:
                 arg2_idx0 = row['keyphrases'][str(arg2)]['idxs'][0]
 
                 label = relation_['label']
-                relation.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
+                relation.append((arg1_idx0, arg2_idx0, self.relation_w2id[label]))
             except:
                 pass
 
@@ -118,7 +118,7 @@ class Train:
                 if label == 'NONE':
                     relation.append((arg1_idx0, arg2_idx0, 0))
                 else:
-                    relation.append((arg1_idx0, arg2_idx0, relation_w2id[label]))
+                    relation.append((arg1_idx0, arg2_idx0, self.relation_w2id[label]))
             except:
                 pass
         return relation#, relation_type
@@ -309,15 +309,15 @@ class Train:
             is_related_true.extend(current_is_related_true)
             is_related_pred.extend(current_is_related_pred)
 
-        entity_labels = list(range(1, len(ENTITIES)))
-        entity_target_names = ENTITIES[1:]
+        entity_labels = list(range(1, len(self.entities)))
+        entity_target_names = self.entities[1:]
         print("Entity report:")
         print(classification_report(_get_single_output_id_list(entity_true), _get_single_output_id_list(entity_pred),
                                     labels=entity_labels, target_names=entity_target_names))
         print()
 
-        relation_labels = list(range(len(RELATIONS)))
-        relation_target_names = RELATIONS
+        relation_labels = list(range(len(self.relations)))
+        relation_target_names = self.relations
         print("Is related report:")
         print(classification_report(is_related_true, is_related_pred, labels=relation_labels,
                                     target_names=relation_target_names))
@@ -365,7 +365,7 @@ class Train:
             if not os.path.exists(output_path):
                 os.makedirs(output_path)
 
-            c = get_collection(devdata, entity_pred, related_pred, relations_inv=self.relations_inv)
+            c = postprocessing.get_collection(devdata, entity_pred, related_pred, relations_inv=self.relations_inv)
             output_file_name = output_path + 'output.txt'
             c.dump(Path(output_file_name))
         command_text = "python3 data/scripts/score.py --gold {0} --submit {1}".format(devdata_folder, output_folder)

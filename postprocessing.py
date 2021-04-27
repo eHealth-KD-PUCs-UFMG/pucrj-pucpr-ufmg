@@ -45,21 +45,6 @@ def discard_entities(sentence):
     for key_remove in to_remove:
         sentence.keyphrases.remove(key_remove)
 
-def check_tuple_in_list(relation_tuple, related_list):
-    idx1, idx2, label = relation_tuple
-    for related_idx1, related_idx2, related_label in related_list:
-        if related_label >= 1 and idx1 == related_idx1 and idx2 == related_idx2:
-            return True
-    return False
-
-def filter_relations_using_related(relation_type_list, related_list):
-    result = []
-    for relation_tuple in relation_type_list:
-        if check_tuple_in_list(relation_tuple, related_list):
-            result.append(relation_tuple)
-    return result
-
-
 def add_relations(sentence, relation_list, token2entity, relation_id2w):
     for token_idx1, token_idx2, label_idx in relation_list:
         relation_label = relation_id2w[label_idx]
@@ -93,11 +78,6 @@ def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
         sentence_text = row['text']
         sentence = Sentence(sentence_text)
         tokens = row['tokens']
-        # print(tokens)
-        # print(entity_list)
-        # print(multiword_list)
-        # relation_type_list = filter_relations_using_related(relation_type_list, related_list)
-        # print(multiword_dict)
         last_pos = 0
         token_index_to_entity_id = {}
         index = 0
@@ -144,10 +124,7 @@ def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
         relation_id2w_local = utils.relation_id2w
         if relations_inv:
             relation_id2w_local = utils.relation_inv_id2w
-        add_relations(sentence, related_list, token_index_to_entity_id, relation_id2w)
-
-        add_relations(sentence, relation_type_list, token_index_to_entity_id, relation_id2w_local)
-
+        add_relations(sentence, related_list, token_index_to_entity_id, relation_id2w_local)
 
         c.sentences.append(sentence)
     return c
