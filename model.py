@@ -5,7 +5,7 @@ from transformers import DistilBertModel, DistilBertConfig
 from transformers import MT5EncoderModel, T5Tokenizer
 import torch
 import torch.nn as nn
-from utils import ENTITIES, RELATIONS
+import utils
 
 class Classifier(nn.Module):
     def __init__(self, input_dim, output_dim):
@@ -28,7 +28,7 @@ class Classifier(nn.Module):
 
 class Vicomtech(nn.Module):
     def __init__(self, pretrained_model_path='dccuchile/bert-base-spanish-wwm-cased',
-                 hdim=768, edim=len(ENTITIES), rdim=len(RELATIONS),
+                 hdim=768, edim=len(utils.ENTITIES), rdim=len(utils.RELATIONS),
                  distilbert_nlayers=2, distilbert_nheads=2, device='cuda', max_length=128):
         super(Vicomtech, self).__init__()
         self.hdim = hdim

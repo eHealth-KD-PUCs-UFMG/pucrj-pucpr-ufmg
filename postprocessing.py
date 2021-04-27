@@ -1,8 +1,6 @@
 from data.scripts.anntools import Collection, Sentence, Keyphrase, Relation
-from pathlib import Path
-import time
 import torch
-from utils import relation_id2w, relation_w2id, entity_id2w, entity_w2id
+import utils
 
 
 def check_valid_token(cur_token):
@@ -64,19 +62,28 @@ def filter_relations_using_related(relation_type_list, related_list):
 
 def add_relations(sentence, relation_list, token2entity, relation_id2w):
     for token_idx1, token_idx2, label_idx in relation_list:
-        if relation_id2w[label_idx] != 'NONE' and token_idx1 in token2entity and token_idx2 in token2entity:
-            origin, destination = token2entity[token_idx1], token2entity[token_idx2]
+        relation_label = relation_id2w[label_idx]
+        relation_idx1 = token_idx1
+        relation_idx2 = token_idx2
+        # if relation is INV, change label and invert indexes
+        if relation_label.endswith('_INV'):
+            relation_label = relation_label.split('_')[0]
+            relation_idx1 = token_idx2
+            relation_idx2 = token_idx1
+
+        if relation_label != 'NONE' and relation_idx1 in token2entity and relation_idx2 in token2entity:
+            origin, destination = token2entity[relation_idx1], token2entity[relation_idx2]
             if origin != destination and sentence.find_keyphrase(id=origin) is not None and sentence.find_keyphrase(
                     id=destination) is not None:
-                sentence.relations.append(Relation(sentence, origin, destination, relation_id2w[label_idx]))
+                sentence.relations.append(Relation(sentence, origin, destination, relation_label))
 
 def check_if_contiguous_entity(index, entity_id, entity_list, tokens):
     return index + 1 < len(entity_list)\
-           and ((entity_id2w[entity_list[index + 1]].strip('-BI') == entity_id2w[entity_id].strip('-BI')
-                and entity_id2w[entity_list[index + 1]].startswith('I-'))
+           and ((utils.entity_id2w[entity_list[index + 1]].strip('-BI') == utils.entity_id2w[entity_id].strip('-BI')
+                and utils.entity_id2w[entity_list[index + 1]].startswith('I-'))
                 or not check_valid_token(tokens[index + 1]))
 
-def get_collection(preprocessed_dataset, entity, related):
+def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
     c = Collection()
     global_entity_id = 0
     for row, entity_list, related_list in zip(preprocessed_dataset, entity, related):
@@ -99,7 +106,7 @@ def get_collection(preprocessed_dataset, entity, related):
             entity_id = entity_list[index]
             # print(entity_id)
             entity_index_list = []
-            if entity_id2w[entity_id] != 'O' and check_valid_token(tokens[index]):
+            if utils.entity_id2w[entity_id] != 'O' and check_valid_token(tokens[index]):
                 cur_token = get_token_at_position(tokens, index)
                 # print('found token: %s' % cur_token)
                 start = last_pos + sentence_text[last_pos:].find(cur_token)
@@ -119,7 +126,7 @@ def get_collection(preprocessed_dataset, entity, related):
                         entity_index_list.append(index)
                         last_pos += len(mw_token)
 
-                keyphrase = Keyphrase(sentence, entity_id2w[entity_id].strip('-BI'), global_entity_id,
+                keyphrase = Keyphrase(sentence, utils.entity_id2w[entity_id].strip('-BI'), global_entity_id,
                                       span_list)
 
                 # print(keyphrase)
@@ -134,7 +141,13 @@ def get_collection(preprocessed_dataset, entity, related):
             index += 1
         discard_entities(sentence)
 
+        relation_id2w_local = utils.relation_id2w
+        if relations_inv:
+            relation_id2w_local = utils.relation_inv_id2w
         add_relations(sentence, related_list, token_index_to_entity_id, relation_id2w)
+
+        add_relations(sentence, relation_type_list, token_index_to_entity_id, relation_id2w_local)
+
 
         c.sentences.append(sentence)
     return c

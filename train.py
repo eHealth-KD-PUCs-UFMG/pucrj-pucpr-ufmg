@@ -8,8 +8,8 @@ import os
 from shutil import copyfile
 from pathlib import Path
 
-from utils import relation_w2id, entity_w2id, ENTITIES, RELATIONS
-from postprocessing import get_collection
+import utils
+import postprocessing
 
 class ProcDataset(Dataset):
     def __init__(self, data):
@@ -28,7 +28,7 @@ class ProcDataset(Dataset):
 class Train:
     def __init__(self, model, criterion, optimizer, loss_func, loss_optimizer, traindata, devdata, epochs, batch_size, batch_status=16,
                  early_stop=3, device='cuda', write_path='model.pt', eval_mode='develop',
-                 pretrained_model='multilingual', log_path='logs', relations_positive_negative=False):
+                 pretrained_model='multilingual', log_path='logs', relations_positive_negative=False, relations_inv=False):
         self.epochs = epochs
         self.batch_size = batch_size
         self.batch_status = batch_status
@@ -53,6 +53,15 @@ class Train:
         self.eval_mode = eval_mode
         self.pretrained_model = pretrained_model
 
+        self.relations_inv = relations_inv
+        self.entities = utils.ENTITIES
+        self.relations = utils.RELATIONS
+        self.entity_w2id = utils.entity_w2id
+        self.relation_w2id = utils.relation_w2id
+        if relations_inv:
+            self.relations = utils.RELATIONS_INV
+            self.relation_w2id = utils.relation_inv_w2id
+
         # only use relations_positive_negative for train data
         self.traindata = DataLoader(self.preprocess(traindata, relations_positive_negative=relations_positive_negative),
                                     batch_size=batch_size, shuffle=True)
@@ -65,8 +74,7 @@ class Train:
                                                                                                    self.eval_mode,
                                                                                                    self.pretrained_model)
 
-    @staticmethod
-    def _get_relations_data(row):
+    def _get_relations_data(self, row):
         relation, relation_type = [], []
         for relation_ in row['relations']:
             try:
@@ -95,8 +103,8 @@ class Train:
                     relation.append((arg2_idx0, arg1_idx0, 0))
         return relation#, relation_type
 
-    @staticmethod
-    def _get_relations_positive_negative_data(row):
+
+    def _get_relations_positive_negative_data(self, row):
         relation, relation_type = [], []
         for relation_ in row['relations_positive_negative']:
             try:
@@ -131,8 +139,8 @@ class Train:
                     idxs = keyphrase['idxs']
 
                     # mark only first subword with entity type
-                    label_begin_idx = entity_w2id['B-' + keyphrase['label']]
-                    label_internal_idx = entity_w2id['I-' + keyphrase['label']]
+                    label_begin_idx = self.entity_w2id['B-' + keyphrase['label']]
+                    label_internal_idx = self.entity_w2id['I-' + keyphrase['label']]
                     first = True
                     for idx in idxs:
                         if not tokens[idx].startswith('##'):
@@ -357,7 +365,7 @@ class Train:
             if not os.path.exists(output_path):
                 os.makedirs(output_path)
 
-            c = get_collection(devdata, entity_pred, related_pred)
+            c = get_collection(devdata, entity_pred, related_pred, relations_inv=self.relations_inv)
             output_file_name = output_path + 'output.txt'
             c.dump(Path(output_file_name))
         command_text = "python3 data/scripts/score.py --gold {0} --submit {1}".format(devdata_folder, output_folder)
