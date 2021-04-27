@@ -112,26 +112,41 @@ f1: 0.481
 Scoring scenario 2 on run 1:
 
 correct_A: 562
+
 incorrect_A: 75
+
 partial_A: 179
+
 spurious_A: 234
+
 missing_A: 95
+
 --------------------
+
 recall: 0.7151
+
 precision: 0.6205
+
 f1: 0.6645
 
 Scoring scenario 3 on run 1:
 
 correct_B: 110
+
 spurious_B: 244
+
 missing_B: 741
+
 --------------------
+
 recall: 0.1293
+
 precision: 0.3107
+
 f1: 0.1826
 
 Run 2 not found!
+
 Run 3 not found!
 
 
