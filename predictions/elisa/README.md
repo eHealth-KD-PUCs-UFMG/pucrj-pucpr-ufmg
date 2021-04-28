@@ -7,7 +7,9 @@ Modelo: multilingual
 [Download Model.pt](https://drive.google.com/file/d/1k84X84c2_yzK-wKcATnLf76bTJkTqMrn/view?usp=sharing)
 
 
-## Resultados (50 épocas):
+## Resultados (50 épocas): 0.4837
+
+<!---
 
 Entity report:
 
@@ -131,3 +133,4 @@ Run 3 not found!
 
 
 F1 score: 0.481
+-->
