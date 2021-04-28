@@ -48,9 +48,11 @@ if __name__ == '__main__':
 
     trainer = Train(model, criterion, optimizer, scheduler, trainset, devset, EPOCH, BATCH_SIZE, early_stop=EARLY_STOP, pretrained_model=PRETRAINED_MODEL, batch_status=BATCH_STATUS, task='entity')
     trainer.train()
-
-    trainer = Train(model, criterion, optimizer, scheduler, trainset, devset, EPOCH, BATCH_SIZE, early_stop=EARLY_STOP, pretrained_model=PRETRAINED_MODEL, batch_status=BATCH_STATUS, task='relation')
-    trainer.train()
     
+    model = torch.load('model.pt')
+    initial_lr = LEARNING_RATE / 10
+    optimizer = optim.AdamW(model.parameters(), lr=initial_lr)
+    lmbda = lambda epoch: min(10, epoch + 1)
+    scheduler = LambdaLR(optimizer, lr_lambda=lmbda)
     trainer = Train(model, criterion, optimizer, scheduler, trainset, devset, EPOCH, BATCH_SIZE, early_stop=EARLY_STOP, pretrained_model=PRETRAINED_MODEL, batch_status=BATCH_STATUS, task='entity+relation', loss_func=loss_func, loss_optimizer=loss_optimizer)
     trainer.train()
