@@ -1,10 +1,14 @@
 from data.scripts.anntools import Collection, Sentence, Keyphrase, Relation
 import torch
 import utils
+from nltk.corpus import stopwords
+stop = stopwords.words('spanish')
+stop += stopwords.words('english')
 
 
 def check_valid_token(cur_token):
-    return not (cur_token.startswith('##') or cur_token == '[CLS]' or cur_token == '[SEP]')
+    return not (cur_token.startswith('##') or cur_token == '[CLS]' \
+           or cur_token == '[SEP]' or cur_token.startswith('I-') or cur_token in stop)
 
 
 def get_token_at_position(tokens, index):
@@ -65,8 +69,7 @@ def add_relations(sentence, relation_list, token2entity, relation_id2w):
 def check_if_contiguous_entity(index, entity_id, entity_list, tokens):
     return index + 1 < len(entity_list)\
            and ((utils.entity_id2w[entity_list[index + 1]].strip('-BI') == utils.entity_id2w[entity_id].strip('-BI')
-                and utils.entity_id2w[entity_list[index + 1]].startswith('I-'))
-                or not check_valid_token(tokens[index + 1]))
+                and utils.entity_id2w[entity_list[index + 1]].startswith('I-')))
 
 def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
     c = Collection()
