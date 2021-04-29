@@ -81,6 +81,29 @@ def check_if_contiguous_entity(index, entity_id, entity_list, tokens):
                 and utils.entity_id2w[entity_list[index + 1]].startswith('I-'))
                 or not check_valid_token(tokens[index + 1]))
 
+def fix_span_list(span_list):
+    if len(span_list) == 0:
+        return span_list
+    result = []
+    last_span = span_list[0]
+    for i in range(1, len(span_list)):
+        last_start, last_end = last_span
+        cur_start, cur_end = span_list[i]
+        if last_end == cur_start:
+            last_span = (last_start, cur_end)
+        else:
+            result.append(last_span)
+            last_span = span_list[i]
+    result.append(last_span)
+    return result
+
+def find_nth_occurrence(text, token, num_occurrence):
+    val = -1
+    for i in range(num_occurrence):
+        val = text.find(token, val + 1)
+    return val
+
+
 def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
     c = Collection()
     global_entity_id = 0
@@ -91,8 +114,8 @@ def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
         sentence_text = row['text']
         sentence = Sentence(sentence_text)
         tokens = row['tokens']
-        last_pos = 0
         token_index_to_entity_id = {}
+        count_token = {}
         index = 0
         while index < len(entity_list):
             # print(tokens[index])
@@ -102,25 +125,30 @@ def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
             if utils.entity_id2w[entity_id].startswith('B-') and check_valid_initial_token(tokens[index]):
                 cur_token = get_token_at_position(tokens, index)
                 # print('found token: %s' % cur_token)
-                start = last_pos + sentence_text[last_pos:].find(cur_token)
+                # start = last_pos + sentence_text[last_pos:].find(cur_token)
+                count = count_token.get(cur_token, 0)
+                count_token[cur_token] = count + 1
+                start = find_nth_occurrence(sentence_text, cur_token, count_token[cur_token])
                 end = start + len(cur_token)
                 span_list = [(start, end)]
                 entity_index_list.append(index)
-                last_pos += len(cur_token)
 
                 while check_if_contiguous_entity(index, entity_id, entity_list, tokens):
                     index += 1
                     mw_token = get_token_at_position(tokens, index)
                     if len(mw_token) > 0:
                         # print('contiguous entities: %s' % mw_token)
-                        start = last_pos + sentence_text[last_pos:].find(mw_token)
+                        # start = last_pos + sentence_text[last_pos:].find(mw_token)
+                        count = count_token.get(mw_token, 0)
+                        count_token[mw_token] = count + 1
+                        start = find_nth_occurrence(sentence_text, cur_token, count_token[mw_token])
                         end = start + len(mw_token)
                         span_list.append((start, end))
                         entity_index_list.append(index)
-                        last_pos += len(mw_token)
+
 
                 keyphrase = Keyphrase(sentence, utils.entity_id2w[entity_id].strip('-BI'), global_entity_id,
-                                      span_list)
+                                      fix_span_list(span_list))
 
                 # print(keyphrase)
                 for entity_index in entity_index_list:
@@ -129,8 +157,6 @@ def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
                 # print(keyphrase)
                 global_entity_id += 1
                 sentence.keyphrases.append(keyphrase)
-            elif tokens[index] != '[CLS]' and tokens[index] != '[SEP]':
-                last_pos += len(tokens[index].replace('##', ''))
             index += 1
         discard_entities(sentence)
 
