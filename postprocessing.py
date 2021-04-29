@@ -122,7 +122,7 @@ def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
                 # print(keyphrase)
                 global_entity_id += 1
                 sentence.keyphrases.append(keyphrase)
-            elif not check_valid_token(tokens[index]):
+            elif tokens[index] != '[CLS]' and tokens[index] != '[SEP]':
                 last_pos += len(tokens[index].replace('##', ''))
             index += 1
         discard_entities(sentence)
