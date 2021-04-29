@@ -2,23 +2,30 @@ from data.scripts.anntools import Collection, Sentence, Keyphrase, Relation
 import torch
 import utils
 from nltk.corpus import stopwords
+import string
 stop = stopwords.words('spanish')
 stop += stopwords.words('english')
 
+def check_if_stopword(token):
+    return token in stop
+
+def check_if_connector(token):
+    return token in '-+_%'
 
 def check_valid_token(cur_token):
-    return not (cur_token.startswith('##') or cur_token == '[CLS]' or cur_token == '[SEP]')
+    return not (cur_token.startswith('##') or cur_token == '[CLS]' or cur_token == '[SEP]'
+                or check_if_connector(cur_token))
 
 def check_valid_initial_token(cur_token):
-    return check_valid_token(cur_token) and not cur_token in stop
+    return check_valid_token(cur_token) and not check_if_stopword(cur_token) and not cur_token not in string.punctuation
 
 
 def get_token_at_position(tokens, index):
-    if tokens[index].startswith('##'):
+    if not check_valid_token(tokens[index]):
         return ''
     result = tokens[index]
     i = index + 1
-    while i < len(tokens) and tokens[i].startswith('##'):
+    while i < len(tokens) and (tokens[i].startswith('##') or check_if_connector(tokens[i])):
         result += tokens[i].replace('##', '')
         i += 1
     return result
