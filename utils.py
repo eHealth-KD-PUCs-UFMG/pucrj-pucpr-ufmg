@@ -2,7 +2,7 @@ ENTITIES = ["O", "B-Concept", "I-Concept", "B-Action", "I-Action", "B-Predicate"
             "I-Reference"]
 
 RELATIONS = [
-    # "O",
+    "NONE",
     "is-a",
     "part-of",
     "has-property",
@@ -19,7 +19,7 @@ RELATIONS = [
 ]
 
 RELATIONS_INV = [
-    # "O",
+    "NONE",
     "is-a",
     "part-of",
     "has-property",

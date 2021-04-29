@@ -37,7 +37,7 @@ class Vicomtech(nn.Module):
         self.device = device
         self.max_length = max_length
         self.pretrained_model_path = pretrained_model_path
-
+        
         # BETO
         if 'mt5' in pretrained_model_path:
             # google/mt5-base
@@ -54,15 +54,15 @@ class Vicomtech(nn.Module):
             vocab_size=self.tokenizer.vocab_size
         else:
             vocab_size=len(self.tokenizer.vocab)
-        configuration = DistilBertConfig(vocab_size=vocab_size, n_layers=distilbert_nlayers, n_heads=distilbert_nheads)
-        self.distilbert = DistilBertModel(configuration)
+        # configuration = DistilBertConfig(vocab_size=vocab_size, n_layers=distilbert_nlayers, n_heads=distilbert_nheads)
+        # self.distilbert = DistilBertModel(configuration)
 
         # linear projections
         self.entity_classifier = Classifier(hdim, edim)
 
-        self.related_classifier = Classifier(hdim, 2)
+        self.related_classifier = Classifier(hdim, rdim)
 
-        self.relation_type_classifier = Classifier(hdim+2, rdim)
+        # self.relation_type_classifier = Classifier(hdim+2, rdim)
 
     def forward(self, texts):
         # part 1
@@ -85,91 +85,32 @@ class Vicomtech(nn.Module):
             embent_embent[:, seq_len*i:seq_len*i+seq_len, :] = m2
 
         # thiago addition to adequate dimensions from step 3 to 4
-        inp_distilbert = self.tanh(self.distil_layer(embent_embent))
+        ssd = self.tanh(self.distil_layer(embent_embent))
         # part 4
-        ssd = self.distilbert(inputs_embeds=inp_distilbert)['last_hidden_state']
+        # ssd = self.distilbert(inputs_embeds=inp_distilbert)['last_hidden_state']
 
         # part 7
         logits, related = self.related_classifier(ssd)
 
-        # part 8
-        incoming_outgoing = torch.cat([ssd, logits], 2)
-        # part 9
-        _, related_type = self.relation_type_classifier(incoming_outgoing)
+        # # part 8
+        # incoming_outgoing = torch.cat([ssd, logits], 2)
+        # # part 9
+        # _, related_type = self.relation_type_classifier(incoming_outgoing)
 
-        return entity, related, related_type
+        return entity, related#, related_type
 
-class EntityModel(nn.Module):
-    def __init__(self, tokenizer, pretrained_model, hdim=768, edim=len(utils.ENTITIES), device='cuda', max_length=128):
-        super(EntityModel, self).__init__()
-        self.edim = edim
-        self.device = device
-        self.max_length = max_length
+class MultiTaskLossWrapper(nn.Module):
+    def __init__(self, task_num):
+        super(MultiTaskLossWrapper, self).__init__()
+        self.task_num = task_num
+        self.log_vars = nn.Parameter(torch.zeros((task_num)))
 
-        # BETO
-        self.tokenizer = tokenizer
-        self.pretrained_model = pretrained_model
+    def forward(self, entity_loss, relation_loss):
 
-        # linear projections
-        self.entity_classifier = Classifier(hdim, edim)
+        precision0 = torch.exp(-self.log_vars[0])
+        loss0 = precision0*entity_loss + self.log_vars[0]
 
-
-    def forward(self, texts):
-        # part 1
-        tokens = self.tokenizer(texts, padding=True, truncation=True, max_length=self.max_length,
-                                return_tensors="pt").to(self.device)
-        embeddings = self.pretrained_model(**tokens)['last_hidden_state']
-
-        # part 2
-        logits, entity = self.entity_classifier(embeddings)
-
-        # part 23
-        embeddings_entity = torch.cat([embeddings, logits], 2)
-
-        return entity, embeddings_entity
-
-class RelationModel(nn.Module):
-    def __init__(self, vocab_size, hdim=768, edim=len(utils.ENTITIES), rdim=len(utils.RELATIONS),
-                 distilbert_nlayers=2, distilbert_nheads=2, device='cuda'):
-        super(RelationModel, self).__init__()
-        self.hdim = hdim
-        self.edim = edim
-        self.rdim = rdim
-        self.device = device
-
-        # DistilBERT
-        self.distil_layer = nn.Linear(2 * (hdim + edim), hdim)
-        self.tanh = nn.Tanh()
-        configuration = DistilBertConfig(vocab_size=vocab_size,
-                                         n_layers=distilbert_nlayers, n_heads=distilbert_nheads)
-        self.distilbert = DistilBertModel(configuration)
-
-        # linear projections
-        self.related_classifier = Classifier(hdim, 2)
-
-        self.relation_type_classifier = Classifier(hdim + 2, rdim)
-
-    def forward(self, embeddings_entity):
-        # part 3 (TRY TO IMPROVE VECTORIZATION)
-        batch, seq_len, dim = embeddings_entity.size()
-        embent_embent = torch.zeros(batch, seq_len ** 2, 2 * dim).to(self.device)
-
-        for i in range(seq_len):
-            m1 = torch.cat(seq_len * [embeddings_entity[:, i, :].unsqueeze(1)], 1)
-            m2 = torch.cat([m1, embeddings_entity], 2)
-            embent_embent[:, seq_len * i:seq_len * i + seq_len, :] = m2
-
-        # thiago addition to adequate dimensions from step 3 to 4
-        inp_distilbert = self.tanh(self.distil_layer(embent_embent))
-        # part 4
-        ssd = self.distilbert(inputs_embeds=inp_distilbert)['last_hidden_state']
-
-        # part 7
-        logits, related = self.related_classifier(ssd)
-
-        # part 8
-        incoming_outgoing = torch.cat([ssd, logits], 2)
-        # part 9
-        _, related_type = self.relation_type_classifier(incoming_outgoing)
-
-        return related, related_type
+        precision1 = torch.exp(-self.log_vars[1])
+        loss1 = precision1*relation_loss + self.log_vars[1]
+        
+        return loss0+loss1

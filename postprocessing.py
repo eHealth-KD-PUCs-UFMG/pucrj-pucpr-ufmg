@@ -1,10 +1,18 @@
 from data.scripts.anntools import Collection, Sentence, Keyphrase, Relation
 import torch
 import utils
+from nltk.corpus import stopwords
+stop = stopwords.words('spanish')
+stop += stopwords.words('english')
 
+def check_if_stopword(token):
+    return token in stop
 
 def check_valid_token(cur_token):
     return not (cur_token.startswith('##') or cur_token == '[CLS]' or cur_token == '[SEP]')
+
+def check_valid_initial_token(cur_token):
+    return check_valid_token(cur_token) and not check_if_stopword(cur_token)
 
 
 def get_token_at_position(tokens, index):
@@ -45,21 +53,6 @@ def discard_entities(sentence):
     for key_remove in to_remove:
         sentence.keyphrases.remove(key_remove)
 
-def check_tuple_in_list(relation_tuple, related_list):
-    idx1, idx2, label = relation_tuple
-    for related_idx1, related_idx2, related_label in related_list:
-        if related_label >= 1 and idx1 == related_idx1 and idx2 == related_idx2:
-            return True
-    return False
-
-def filter_relations_using_related(relation_type_list, related_list):
-    result = []
-    for relation_tuple in relation_type_list:
-        if check_tuple_in_list(relation_tuple, related_list):
-            result.append(relation_tuple)
-    return result
-
-
 def add_relations(sentence, relation_list, token2entity, relation_id2w):
     for token_idx1, token_idx2, label_idx in relation_list:
         relation_label = relation_id2w[label_idx]
@@ -83,22 +76,16 @@ def check_if_contiguous_entity(index, entity_id, entity_list, tokens):
                 and utils.entity_id2w[entity_list[index + 1]].startswith('I-'))
                 or not check_valid_token(tokens[index + 1]))
 
-def get_collection(preprocessed_dataset, entity, related, relation_type, relations_inv=False):
+def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
     c = Collection()
     global_entity_id = 0
-    for row, entity_list, related_list, relation_type_list in zip(preprocessed_dataset, entity, related, relation_type):
+    for row, entity_list, related_list in zip(preprocessed_dataset, entity, related):
         if isinstance(entity_list, torch.Tensor):
             entity_list = entity_list.detach().cpu().numpy()
             related_list = related_list.detach().cpu().numpy()
-            relation_type_list = relation_type_list.detach().cpu().numpy()
         sentence_text = row['text']
         sentence = Sentence(sentence_text)
         tokens = row['tokens']
-        # print(tokens)
-        # print(entity_list)
-        # print(multiword_list)
-        relation_type_list = filter_relations_using_related(relation_type_list, related_list)
-        # print(multiword_dict)
         last_pos = 0
         token_index_to_entity_id = {}
         index = 0
@@ -107,7 +94,7 @@ def get_collection(preprocessed_dataset, entity, related, relation_type, relatio
             entity_id = entity_list[index]
             # print(entity_id)
             entity_index_list = []
-            if utils.entity_id2w[entity_id] != 'O' and check_valid_token(tokens[index]):
+            if utils.entity_id2w[entity_id].startswith('B-') and check_valid_initial_token(tokens[index]):
                 cur_token = get_token_at_position(tokens, index)
                 # print('found token: %s' % cur_token)
                 start = last_pos + sentence_text[last_pos:].find(cur_token)
@@ -127,6 +114,8 @@ def get_collection(preprocessed_dataset, entity, related, relation_type, relatio
                         entity_index_list.append(index)
                         last_pos += len(mw_token)
 
+
+
                 keyphrase = Keyphrase(sentence, utils.entity_id2w[entity_id].strip('-BI'), global_entity_id,
                                       span_list)
 
@@ -145,7 +134,7 @@ def get_collection(preprocessed_dataset, entity, related, relation_type, relatio
         relation_id2w_local = utils.relation_id2w
         if relations_inv:
             relation_id2w_local = utils.relation_inv_id2w
-        add_relations(sentence, relation_type_list, token_index_to_entity_id, relation_id2w_local)
+        add_relations(sentence, related_list, token_index_to_entity_id, relation_id2w_local)
 
         c.sentences.append(sentence)
     return c

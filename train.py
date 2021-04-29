@@ -28,17 +28,43 @@ class ProcDataset(Dataset):
 class Train:
     def __init__(self, model, criterion, optimizer, scheduler, traindata, devdata, epochs, batch_size, batch_status=16,
                  early_stop=3, device='cuda', write_path='model.pt', eval_mode='develop',
-                 pretrained_model='multilingual', log_path='logs', relations_positive_negative=False, relations_inv=False):
+                 pretrained_model='multilingual', log_path='logs', relations_positive_negative=False, relations_inv=False, task='entity+relation', loss_func=None, loss_optimizer=None):
         self.epochs = epochs
         self.batch_size = batch_size
         self.batch_status = batch_status
         self.early_stop = early_stop
         self.device = device
+        self.task = task
 
         self.traindata = traindata
         self.devdata = devdata
 
         self.model = model
+        # set grad requirement based on the task
+        if self.task == 'entity':
+            for param in self.model.distil_layer.parameters():
+                param.requires_grad = False
+            for param in self.model.related_classifier.parameters():
+                param.requires_grad = False
+            self.scenario = 2
+        elif self.task == 'relation':
+            for param in self.model.distil_layer.parameters():
+                param.requires_grad = True
+            for param in self.model.related_classifier.parameters():
+                param.requires_grad = True
+            for param in self.model.entity_classifier.parameters():
+                param.requires_grad = False
+            self.scenario = 3
+        else:
+            for param in self.model.distil_layer.parameters():
+                param.requires_grad = True
+            for param in self.model.related_classifier.parameters():
+                param.requires_grad = True
+            for param in self.model.entity_classifier.parameters():
+                param.requires_grad = True
+            self.scenario = 1
+        self.loss_func = loss_func
+        self.loss_optimizer = loss_optimizer
         self.criterion = criterion
         self.optimizer = optimizer
         self.scheduler = scheduler
@@ -74,7 +100,6 @@ class Train:
 
     def _get_relations_data(self, row):
         relation, relation_type = [], []
-        nrelations = 0
         for relation_ in row['relations']:
             try:
                 arg1 = relation_['arg1']
@@ -84,8 +109,7 @@ class Train:
                 arg2_idx0 = row['keyphrases'][str(arg2)]['idxs'][0]
 
                 label = relation_['label']
-                relation.append((arg1_idx0, arg2_idx0, 1))
-                relation_type.append((arg1_idx0, arg2_idx0, self.relation_w2id[label]))
+                relation.append((arg1_idx0, arg2_idx0, self.relation_w2id[label]))
             except:
                 pass
 
@@ -97,13 +121,11 @@ class Train:
                 f = [w for w in relation if w[0] == arg1_idx0 and w[1] == arg2_idx0]
                 if len(f) == 0:
                     relation.append((arg1_idx0, arg2_idx0, 0))
-                    nrelations += 1
 
                 f = [w for w in relation if w[0] == arg2_idx0 and w[1] == arg1_idx0]
                 if len(f) == 0:
                     relation.append((arg2_idx0, arg1_idx0, 0))
-                    nrelations += 1
-        return relation, relation_type
+        return relation#, relation_type
 
 
     def _get_relations_positive_negative_data(self, row):
@@ -120,11 +142,10 @@ class Train:
                 if label == 'NONE':
                     relation.append((arg1_idx0, arg2_idx0, 0))
                 else:
-                    relation.append((arg1_idx0, arg2_idx0, 1))
-                    relation_type.append((arg1_idx0, arg2_idx0, self.relation_w2id[label]))
+                    relation.append((arg1_idx0, arg2_idx0, self.relation_w2id[label]))
             except:
                 pass
-        return relation, relation_type
+        return relation#, relation_type
 
     def preprocess(self, procset, relations_positive_negative=False):
         inputs = []
@@ -157,20 +178,18 @@ class Train:
 
             # relations gold-standards
             if relations_positive_negative:
-                relation, relation_type = self._get_relations_positive_negative_data(row)
+                relation = self._get_relations_positive_negative_data(row)
             else:
-                relation, relation_type = self._get_relations_data(row)
+                relation = self._get_relations_data(row)
 
             inputs.append({
                 'X': text,
                 'entity': entity,
                 'relation': relation,
-                'relation_type': relation_type
             })
         return ProcDataset(inputs)
 
-    def compute_loss_full(self, entity_probs, batch_entity, related_probs, batch_relation, related_type_probs,
-                          batch_relation_type):
+    def compute_loss_full(self, entity_probs, batch_entity, related_probs, batch_relation):
         # entity loss
         batch, seq_len, dim = entity_probs.size()
         entity_real = torch.nn.utils.rnn.pad_sequence(batch_entity).transpose(0, 1).to(self.device)
@@ -190,36 +209,15 @@ class Train:
 
         relation_loss = self.criterion(related_probs.view(batch*seq_len, dim), relation_real.view(-1))
 
-        batch, seq_len, dim = related_type_probs.size()
-        rowcol_len = int(np.sqrt(seq_len))
-        related_type_probs = related_type_probs.view((batch, rowcol_len, rowcol_len, dim))
+        if self.task == 'entity':
+            return entity_loss
+        elif self.task == 'relation':
+            return relation_loss
+        else:
+            loss = self.loss_func(entity_loss, relation_loss)
+            return loss
 
-        relation_real = []
-        relation_pred = []
-
-        for i in range(batch):
-            try:
-                rows, columns = batch_relation_type[i][:, 0], batch_relation_type[i][:, 1]
-                labels = batch_relation_type[i][:, 2]
-                relation_real.extend(labels.tolist())
-
-                preds = related_type_probs[i, rows, columns]
-                relation_pred.append(preds)
-            except:
-                pass
-
-        try:
-            relation_pred = torch.cat(relation_pred, 0).to(self.device)
-            relation_real = torch.tensor(relation_real).to(self.device)
-            relation_type_loss = self.criterion(relation_pred, relation_real)
-        except:
-            relation_type_loss = 0
-
-        loss = entity_loss + relation_loss + relation_type_loss
-        return loss
-
-    def compute_loss(self, entity_probs, batch_entity, related_probs, batch_relation, related_type_probs,
-                     batch_relation_type):
+    def compute_loss(self, entity_probs, batch_entity, related_probs, batch_relation):
         # entity loss
         batch, seq_len, dim = entity_probs.size()
         entity_real = torch.nn.utils.rnn.pad_sequence(batch_entity).transpose(0, 1).to(self.device)
@@ -250,66 +248,44 @@ class Train:
         except:
             relation_loss = 0
 
-        # relation type loss
-        batch, seq_len, dim = related_type_probs.size()
-        rowcol_len = int(np.sqrt(seq_len))
-        related_type_probs = related_type_probs.view((batch, rowcol_len, rowcol_len, dim))
-
-        relation_real = []
-        relation_pred = []
-
-        for i in range(batch):
-            try:
-                rows, columns = batch_relation_type[i][:, 0], batch_relation_type[i][:, 1]
-                labels = batch_relation_type[i][:, 2]
-                relation_real.extend(labels.tolist())
-
-                preds = related_type_probs[i, rows, columns]
-                relation_pred.append(preds)
-            except:
-                pass
-
-        try:
-            relation_pred = torch.cat(relation_pred, 0).to(self.device)
-            relation_real = torch.tensor(relation_real).to(self.device)
-            relation_type_loss = self.criterion(relation_pred, relation_real)
-        except:
-            relation_type_loss = 0
-
-        loss = entity_loss + relation_loss + relation_type_loss
-        return loss
+        if self.task == 'entity':
+            return entity_loss
+        elif self.task == 'relation':
+            return relation_loss
+        else:
+            loss = self.loss_func(entity_loss, relation_loss)
+            return loss
 
     def train(self):
-        # max_f1_score = self.eval()
-        max_f1_score = 0
+        max_f1_score = self.eval()
         repeat = 0
         for epoch in range(self.epochs):
             self.model.train()
             losses = []
-            batch_X, batch_entity, batch_relation, batch_relation_type = [], [], [], []
 
             for batch_idx, inp in enumerate(self.traindata):                
                 batch_X = inp['X']
                 # Predict
-                entity_probs, related_probs, related_type_probs = self.model(batch_X)
+                entity_probs, related_probs = self.model(batch_X)
 
                 self.optimizer.zero_grad()
+                if self.loss_optimizer:
+                    self.loss_optimizer.zero_grad()
 
                 # Calculate loss
                 batch_entity = torch.tensor([inp['entity']])
                 batch_relation = torch.tensor([inp['relation']])
-                batch_relation_type  = torch.tensor([inp['relation_type']])
                 loss = self.compute_loss_full(entity_probs,
                                         batch_entity,
                                         related_probs,
-                                        batch_relation,
-                                        related_type_probs,
-                                        batch_relation_type)
+                                        batch_relation)
                 losses.append(float(loss))
 
                 # Backpropagation
                 loss.backward()
                 self.optimizer.step()
+                if self.loss_optimizer:
+                    self.loss_optimizer.step()
 
                 # Display
                 if (batch_idx + 1) % self.batch_status == 0:
@@ -354,10 +330,9 @@ class Train:
             sentence = inp['X']
             entity_ids = inp['entity']
             relation_ids = inp['relation']
-            relation_type_ids  = inp['relation_type']
             
             # Predict
-            entity_probs, related_probs, related_type_probs = self.model(sentence)
+            entity_probs, related_probs = self.model(sentence)
 
             len_sentence = entity_probs.shape[1]
 
@@ -372,13 +347,6 @@ class Train:
             is_related_true.extend(current_is_related_true)
             is_related_pred.extend(current_is_related_pred)
 
-            # Relation type
-            relation_type_array = [int(w) for w in list(related_type_probs[0].argmax(dim=1))]
-            relation_type_matrix = np.array(relation_type_array).reshape((len_sentence, len_sentence))
-            relation_type_true, relation_type_pred = self._get_relation_eval(relation_type_ids, relation_type_matrix)
-            relation_true.extend(relation_type_true)
-            relation_pred.extend(relation_type_pred)
-
         entity_labels = list(range(1, len(self.entities)))
         entity_target_names = self.entities[1:]
         print("Entity report:")
@@ -386,14 +354,10 @@ class Train:
                                     labels=entity_labels, target_names=entity_target_names))
         print()
 
+        relation_labels = list(range(1, len(self.relations)))
+        relation_target_names = self.relations[1:]
         print("Is related report:")
-        print(classification_report(is_related_true, is_related_pred))
-        print()
-
-        relation_labels = list(range(len(self.relations)))
-        relation_target_names = self.relations
-        print("Relation type report")
-        print(classification_report(relation_true, relation_pred, labels=relation_labels,
+        print(classification_report(is_related_true, is_related_pred, labels=relation_labels,
                                     target_names=relation_target_names))
         print()
 
@@ -406,10 +370,10 @@ class Train:
 
         self.model.eval()
 
-        entity_pred, related_pred, relation_type_pred = [], [], []
+        entity_pred, related_pred = [], []
         for sentence in test_dev_X:
             # Predict
-            entity_probs, related_probs, related_type_probs = self.model(sentence['X'])
+            entity_probs, related_probs = self.model(sentence['X'])
 
             len_sentence = entity_probs.shape[1]
 
@@ -421,12 +385,7 @@ class Train:
             related_matrix = np.array(related_array).reshape((len_sentence, len_sentence))
             related_pred.append(self._get_relation_output(related_matrix, 1, len_sentence))
 
-            # Relation type
-            relation_array = [int(w) for w in list(related_type_probs[0].argmax(dim=1))]
-            relation_matrix = np.array(relation_array).reshape((len_sentence, len_sentence))
-            relation_type_pred.append(self._get_relation_output(relation_matrix, 0, len_sentence))
-
-        return entity_pred, related_pred, relation_type_pred
+        return entity_pred, related_pred
 
     def eval(self, result_file_name='result.txt', verbose=False, scenario=None):
         # mode = training | develop
@@ -438,15 +397,13 @@ class Train:
         for scenario_folder in scenario_folder_list:
             devdata_path = devdata_folder + scenario_folder + 'input_%s.json' % self.pretrained_model
             devdata = json.load(open(devdata_path))
-            # devdata = DataLoader(self.preprocess(devdata), batch_size=self.batch_size, shuffle=True)
-            entity_pred, related_pred, relation_pred = self.test(devdata)
+            entity_pred, related_pred = self.test(devdata)
 
             output_path = '%s/run1/%s/' % (output_folder, scenario_folder)
             if not os.path.exists(output_path):
                 os.makedirs(output_path)
 
-            c = postprocessing.get_collection(devdata, entity_pred, related_pred, relation_pred,
-                                              relations_inv=self.relations_inv)
+            c = postprocessing.get_collection(devdata, entity_pred, related_pred, relations_inv=self.relations_inv)
             output_file_name = output_path + 'output.txt'
             c.dump(Path(output_file_name))
         command_text = "python3 data/scripts/score.py --gold {0} --submit {1}".format(devdata_folder, output_folder)
@@ -460,9 +417,12 @@ class Train:
         with open(result_file_name, 'r') as f:
             print('Evaluation:')
             print(f.read())
+        isScenario = False
         with open(result_file_name, 'r') as f:
             for line in f:
-                if line.startswith("f1:"):
+                if 'scenario ' + str(self.scenario) in line:
+                    isScenario = True
+                if isScenario and line.startswith("f1:"):
                     f1_score = float(line.split(':')[-1].strip())
                     break
         return f1_score
@@ -483,5 +443,4 @@ class Train:
             idx1, idx2, label = relation
             relation_true.append(int(label))
             relation_pred.append(int(relation_matrix[idx1, idx2]))
-            # relation_output.append((int(idx1), int(idx2), int(relation_matrix[idx1, idx2])))
         return relation_true, relation_pred
