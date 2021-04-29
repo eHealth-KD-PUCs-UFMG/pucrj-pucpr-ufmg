@@ -141,7 +141,7 @@ def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
                         # start = last_pos + sentence_text[last_pos:].find(mw_token)
                         count = count_token.get(mw_token, 0)
                         count_token[mw_token] = count + 1
-                        start = find_nth_occurrence(sentence_text, cur_token, count_token[mw_token])
+                        start = find_nth_occurrence(sentence_text, mw_token, count_token[mw_token])
                         end = start + len(mw_token)
                         span_list.append((start, end))
                         entity_index_list.append(index)
