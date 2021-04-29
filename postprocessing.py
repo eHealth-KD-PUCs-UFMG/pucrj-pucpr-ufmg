@@ -17,7 +17,7 @@ def check_valid_token(cur_token):
                 or check_if_connector(cur_token))
 
 def check_valid_initial_token(cur_token):
-    return check_valid_token(cur_token) and not check_if_stopword(cur_token) and not cur_token not in string.punctuation
+    return check_valid_token(cur_token) and not check_if_stopword(cur_token) and not cur_token in string.punctuation
 
 
 def get_token_at_position(tokens, index):
