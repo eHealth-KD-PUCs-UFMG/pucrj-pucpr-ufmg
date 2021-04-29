@@ -7,8 +7,10 @@ stop += stopwords.words('english')
 
 
 def check_valid_token(cur_token):
-    return not (cur_token.startswith('##') or cur_token == '[CLS]' \
-           or cur_token == '[SEP]' or cur_token.startswith('I-') or cur_token in stop)
+    return not (cur_token.startswith('##') or cur_token == '[CLS]' or cur_token == '[SEP]')
+
+def check_valid_initial_token(cur_token):
+    return check_valid_token(cur_token) and not cur_token in stop
 
 
 def get_token_at_position(tokens, index):
@@ -69,7 +71,8 @@ def add_relations(sentence, relation_list, token2entity, relation_id2w):
 def check_if_contiguous_entity(index, entity_id, entity_list, tokens):
     return index + 1 < len(entity_list)\
            and ((utils.entity_id2w[entity_list[index + 1]].strip('-BI') == utils.entity_id2w[entity_id].strip('-BI')
-                and utils.entity_id2w[entity_list[index + 1]].startswith('I-')))
+                and utils.entity_id2w[entity_list[index + 1]].startswith('I-'))
+                or not check_valid_token(tokens[index + 1]))
 
 def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
     c = Collection()
@@ -89,7 +92,7 @@ def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
             entity_id = entity_list[index]
             # print(entity_id)
             entity_index_list = []
-            if utils.entity_id2w[entity_id] != 'O' and check_valid_token(tokens[index]):
+            if utils.entity_id2w[entity_id].startswith('B-') and check_valid_initial_token(tokens[index]):
                 cur_token = get_token_at_position(tokens, index)
                 # print('found token: %s' % cur_token)
                 start = last_pos + sentence_text[last_pos:].find(cur_token)
