@@ -2,6 +2,7 @@ from data.scripts.anntools import Collection, Sentence, Keyphrase, Relation
 import torch
 import utils
 from nltk.corpus import stopwords
+import string
 stop = stopwords.words('spanish')
 stop += stopwords.words('english')
 
@@ -12,7 +13,7 @@ def check_valid_token(cur_token):
     return not (cur_token.startswith('##') or cur_token == '[CLS]' or cur_token == '[SEP]')
 
 def check_valid_initial_token(cur_token):
-    return check_valid_token(cur_token) and not check_if_stopword(cur_token)
+    return check_valid_token(cur_token) and not check_if_stopword(cur_token) and not cur_token in string.punctuation
 
 
 def get_token_at_position(tokens, index):
@@ -23,6 +24,9 @@ def get_token_at_position(tokens, index):
     while i < len(tokens) and tokens[i].startswith('##'):
         result += tokens[i].replace('##', '')
         i += 1
+
+    if result[-1] in string.punctuation:
+        result = result[:-1]
     return result
 
 
