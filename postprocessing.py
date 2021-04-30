@@ -104,11 +104,10 @@ def find_nth_occurrence(text, token, num_occurrence):
     return val
 
 
-def get_count_token_key(count_token_dict, token):
-    for key in count_token_dict:
-        if token in key:
-            return key
-    return token
+def add_all_to_count_token(count_token_dict, token, val):
+    all_substr = [token[i: j] for i in range(len(token)) for j in range(i + 1, len(token) + 1)]
+    for substr in all_substr:
+        count_token_dict[substr] = val
 
 
 def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
@@ -133,10 +132,9 @@ def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
                 cur_token = get_token_at_position(tokens, index)
                 # print('found token: %s' % cur_token)
                 # start = last_pos + sentence_text[last_pos:].find(cur_token)
-                count_token_key = get_count_token_key(count_token_dict, cur_token)
-                count = count_token_dict.get(count_token_key, 0)
-                count_token_dict[count_token_key] = count + 1
-                start = find_nth_occurrence(sentence_text, cur_token, count_token_dict[count_token_key])
+                count = count_token_dict.get(cur_token, 0)
+                add_all_to_count_token(count_token_dict, cur_token, count + 1)
+                start = find_nth_occurrence(sentence_text, cur_token, count_token_dict[cur_token])
                 end = start + len(cur_token)
                 span_list = [(start, end)]
                 entity_index_list.append(index)
@@ -147,10 +145,9 @@ def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
                     if len(mw_token) > 0:
                         # print('contiguous entities: %s' % mw_token)
                         # start = last_pos + sentence_text[last_pos:].find(mw_token)
-                        count_token_key = get_count_token_key(count_token_dict, mw_token)
-                        count = count_token_dict.get(count_token_key, 0)
-                        count_token_dict[count_token_key] = count + 1
-                        start = find_nth_occurrence(sentence_text, mw_token, count_token_dict[count_token_key])
+                        count = count_token_dict.get(mw_token, 0)
+                        add_all_to_count_token(count_token_dict, mw_token, count + 1)
+                        start = find_nth_occurrence(sentence_text, mw_token, count_token_dict[mw_token])
                         end = start + len(mw_token)
                         span_list.append((start, end))
                         entity_index_list.append(index)
