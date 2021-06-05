@@ -42,13 +42,13 @@ class Train:
         self.model = model
         # set grad requirement based on the task
         if self.task == 'entity':
-            for param in self.model.distil_layer.parameters():
+            for param in self.model.linear_layer.parameters():
                 param.requires_grad = False
             for param in self.model.related_classifier.parameters():
                 param.requires_grad = False
             self.scenario = 2
         elif self.task == 'relation':
-            for param in self.model.distil_layer.parameters():
+            for param in self.model.linear_layer.parameters():
                 param.requires_grad = True
             for param in self.model.related_classifier.parameters():
                 param.requires_grad = True
@@ -56,7 +56,7 @@ class Train:
                 param.requires_grad = False
             self.scenario = 3
         else:
-            for param in self.model.distil_layer.parameters():
+            for param in self.model.linear_layer.parameters():
                 param.requires_grad = True
             for param in self.model.related_classifier.parameters():
                 param.requires_grad = True

@@ -1,7 +1,6 @@
 
 from transformers import AutoTokenizer  # Or BertTokenizer
 from transformers import AutoModel  # or BertModel, for BERT without pretraining heads
-from transformers import DistilBertModel, DistilBertConfig
 from transformers import MT5EncoderModel, T5Tokenizer
 import torch
 import torch.nn as nn
@@ -26,11 +25,11 @@ class Classifier(nn.Module):
         return x, self.softmax(x)
         
 
-class Vicomtech(nn.Module):
+class JointEntityRelation(nn.Module):
     def __init__(self, pretrained_model_path='dccuchile/bert-base-spanish-wwm-cased',
                  hdim=768, edim=len(utils.ENTITIES), rdim=len(utils.RELATIONS),
-                 distilbert_nlayers=2, distilbert_nheads=2, device='cuda', max_length=128):
-        super(Vicomtech, self).__init__()
+                 device='cuda', max_length=128):
+        super(JointEntityRelation, self).__init__()
         self.hdim = hdim
         self.edim = edim
         self.rdim = rdim
@@ -47,22 +46,13 @@ class Vicomtech(nn.Module):
             self.tokenizer = AutoTokenizer.from_pretrained(pretrained_model_path, do_lower_case=False)
             self.beto = AutoModel.from_pretrained(pretrained_model_path)
 
-        # DistilBERT
-        self.distil_layer = nn.Linear(2*(hdim+edim), hdim)
+        self.linear_layer = nn.Linear(2 * (hdim + edim), hdim)
         self.tanh = nn.Tanh()
-        if 'mt5' in self.pretrained_model_path:
-            vocab_size=self.tokenizer.vocab_size
-        else:
-            vocab_size=len(self.tokenizer.vocab)
-        # configuration = DistilBertConfig(vocab_size=vocab_size, n_layers=distilbert_nlayers, n_heads=distilbert_nheads)
-        # self.distilbert = DistilBertModel(configuration)
 
         # linear projections
         self.entity_classifier = Classifier(hdim, edim)
 
         self.related_classifier = Classifier(hdim, rdim)
-
-        # self.relation_type_classifier = Classifier(hdim+2, rdim)
 
     def forward(self, texts):
         # part 1
@@ -75,7 +65,7 @@ class Vicomtech(nn.Module):
         # part 23
         embeddings_entity = torch.cat([embeddings, logits], 2)
 
-        # part 3 (TRY TO IMPROVE VECTORIZATION)
+        # part 3
         batch, seq_len, dim = embeddings_entity.size()
         embent_embent = torch.zeros(batch, seq_len**2, 2*dim).to(self.device)
 
@@ -84,20 +74,13 @@ class Vicomtech(nn.Module):
             m2 = torch.cat([m1, embeddings_entity], 2)
             embent_embent[:, seq_len*i:seq_len*i+seq_len, :] = m2
 
-        # thiago addition to adequate dimensions from step 3 to 4
-        ssd = self.tanh(self.distil_layer(embent_embent))
         # part 4
-        # ssd = self.distilbert(inputs_embeds=inp_distilbert)['last_hidden_state']
+        ssd = self.tanh(self.linear_layer(embent_embent))
 
-        # part 7
+        # part 5
         logits, related = self.related_classifier(ssd)
 
-        # # part 8
-        # incoming_outgoing = torch.cat([ssd, logits], 2)
-        # # part 9
-        # _, related_type = self.relation_type_classifier(incoming_outgoing)
-
-        return entity, related#, related_type
+        return entity, related
 
 class MultiTaskLossWrapper(nn.Module):
     def __init__(self, task_num):

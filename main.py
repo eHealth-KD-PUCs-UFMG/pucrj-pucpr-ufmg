@@ -1,18 +1,9 @@
 import torch
 import torch.nn as nn
 from torch import optim
-from model import Vicomtech, MultiTaskLossWrapper
-from sklearn.metrics import classification_report
-import numpy as np
+from model import JointEntityRelation, MultiTaskLossWrapper
 import json
-import utils
 from train import Train
-import output
-import postprocessing
-from pathlib import Path
-import time
-from shutil import copyfile
-import pandas as pd
 from torch.optim.lr_scheduler import LambdaLR
 
 BATCH_STATUS=64
@@ -29,15 +20,15 @@ if __name__ == '__main__':
     if PRETRAINED_MODEL == 'beto':
         trainset = json.load(open('data/original/ref/'+trainset_name+'/input_beto.json'))
         devset = json.load(open('data/original/ref/develop/input_beto.json'))
-        model = Vicomtech(pretrained_model_path='dccuchile/bert-base-spanish-wwm-cased')
+        model = JointEntityRelation(pretrained_model_path='dccuchile/bert-base-spanish-wwm-cased')
     elif PRETRAINED_MODEL == 'mt5':
         trainset = json.load(open('data/original/ref/'+trainset_name+'/input_mt5.json'))
         devset = json.load(open('data/original/ref/develop/input_mt5.json'))
-        model = Vicomtech(pretrained_model_path='/scratch/thiago.ferreira/mt5')
+        model = JointEntityRelation(pretrained_model_path='/scratch/thiago.ferreira/mt5')
     else:
         trainset = json.load(open('data/original/ref/'+trainset_name+'/input_multilingual.json'))
         devset = json.load(open('data/original/ref/develop/input_multilingual.json'))
-        model = Vicomtech(pretrained_model_path='bert-base-multilingual-cased')
+        model = JointEntityRelation(pretrained_model_path='bert-base-multilingual-cased')
     model.to(device)
     
     criterion = nn.NLLLoss()
@@ -74,7 +65,7 @@ if __name__ == '__main__':
     trainer = Train(model, criterion, optimizer, scheduler, trainset, devset, EPOCH, BATCH_SIZE, early_stop=EARLY_STOP, write_path=write_path, pretrained_model=PRETRAINED_MODEL, batch_status=BATCH_STATUS, task='entity+relation', loss_func=loss_func, loss_optimizer=loss_optimizer)
     trainer.train()
     
-    ## EVALUATION
+    # EVALUATION
     loss_func = MultiTaskLossWrapper(2)
     loss_func.to(device)
     loss_optimizer = optim.AdamW(loss_func.parameters(), lr=LEARNING_RATE)

@@ -1,1 +1,1 @@
-# vicomtech
+# PUCRJ-PUCPR-UFMG
