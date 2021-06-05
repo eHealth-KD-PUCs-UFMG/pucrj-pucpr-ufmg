@@ -102,7 +102,28 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":2,
+                "arg2":3,
+                "label":"in-place"
+            },
+            {
+                "arg1":4,
+                "arg2":2,
+                "label":"subject"
+            },
+            {
+                "arg1":4,
+                "arg2":5,
+                "label":"in-place"
+            },
+            {
+                "arg1":1,
+                "arg2":4,
+                "label":"causes"
+            }
+        ],
         "text":"Si su hijo tiene reflujo, el alimento en su est\u00f3mago vuelve al es\u00f3fago.",
         "tokens":[
             "[CLS]",
@@ -270,7 +291,38 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":8,
+                "arg2":7,
+                "label":"subject"
+            },
+            {
+                "arg1":8,
+                "arg2":9,
+                "label":"target"
+            },
+            {
+                "arg1":8,
+                "arg2":10,
+                "label":"target"
+            },
+            {
+                "arg1":6,
+                "arg2":8,
+                "label":"causes"
+            },
+            {
+                "arg1":6,
+                "arg2":11,
+                "label":"causes"
+            },
+            {
+                "arg1":11,
+                "arg2":7,
+                "label":"subject"
+            }
+        ],
         "text":"Durante una arritmia, el coraz\u00f3n puede latir demasiado lento, demasiado r\u00e1pido o dejar de latir.",
         "tokens":[
             "[CLS]",
@@ -458,7 +510,43 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":18,
+                "arg2":19,
+                "label":"target"
+            },
+            {
+                "arg1":17,
+                "arg2":18,
+                "label":"in-context"
+            },
+            {
+                "arg1":12,
+                "arg2":13,
+                "label":"in-context"
+            },
+            {
+                "arg1":14,
+                "arg2":15,
+                "label":"arg"
+            },
+            {
+                "arg1":14,
+                "arg2":12,
+                "label":"domain"
+            },
+            {
+                "arg1":16,
+                "arg2":17,
+                "label":"target"
+            },
+            {
+                "arg1":14,
+                "arg2":16,
+                "label":"causes"
+            }
+        ],
         "text":"Si el resultado de HbA1c es demasiado alto, es posible que tenga que cambiar su plan de cuidado de la diabetes.",
         "tokens":[
             "[CLS]",
@@ -601,7 +689,28 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":20,
+                "arg2":21,
+                "label":"in-context"
+            },
+            {
+                "arg1":22,
+                "arg2":23,
+                "label":"in-place"
+            },
+            {
+                "arg1":22,
+                "arg2":24,
+                "label":"in-place"
+            },
+            {
+                "arg1":20,
+                "arg2":22,
+                "label":"causes"
+            }
+        ],
         "text":"La infecci\u00f3n por clamidia tambi\u00e9n puede provocar artritis reactiva tanto en hombres como mujeres.",
         "tokens":[
             "[CLS]",
@@ -780,7 +889,38 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":26,
+                "arg2":25,
+                "label":"is-a"
+            },
+            {
+                "arg1":27,
+                "arg2":25,
+                "label":"is-a"
+            },
+            {
+                "arg1":28,
+                "arg2":25,
+                "label":"is-a"
+            },
+            {
+                "arg1":29,
+                "arg2":25,
+                "label":"is-a"
+            },
+            {
+                "arg1":30,
+                "arg2":25,
+                "label":"is-a"
+            },
+            {
+                "arg1":31,
+                "arg2":25,
+                "label":"is-a"
+            }
+        ],
         "text":"Los tratamientos incluyen ejercicio, analg\u00e9sicos, fisioterapia, sillas de ruedas, aparatos dentales y cirug\u00eda.",
         "tokens":[
             "[CLS]",
@@ -955,7 +1095,38 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":32,
+                "arg2":33,
+                "label":"same-as"
+            },
+            {
+                "arg1":34,
+                "arg2":37,
+                "label":"arg"
+            },
+            {
+                "arg1":35,
+                "arg2":34,
+                "label":"domain"
+            },
+            {
+                "arg1":35,
+                "arg2":36,
+                "label":"arg"
+            },
+            {
+                "arg1":35,
+                "arg2":38,
+                "label":"in-place"
+            },
+            {
+                "arg1":32,
+                "arg2":35,
+                "label":"is-a"
+            }
+        ],
         "text":"Ambliop\u00eda u \"ojo perezoso\" es uno de los problemas m\u00e1s comunes de la visi\u00f3n en ni\u00f1os.",
         "tokens":[
             "[CLS]",
@@ -1085,7 +1256,28 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":39,
+                "arg2":40,
+                "label":"in-context"
+            },
+            {
+                "arg1":42,
+                "arg2":43,
+                "label":"in-context"
+            },
+            {
+                "arg1":41,
+                "arg2":39,
+                "label":"subject"
+            },
+            {
+                "arg1":41,
+                "arg2":42,
+                "label":"target"
+            }
+        ],
         "text":"Las infecciones graves requieren f\u00e1rmacos antif\u00fangicos.",
         "tokens":[
             "[CLS]",
@@ -1261,7 +1453,43 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":45,
+                "arg2":44,
+                "label":"subject"
+            },
+            {
+                "arg1":50,
+                "arg2":51,
+                "label":"in-context"
+            },
+            {
+                "arg1":45,
+                "arg2":50,
+                "label":"target"
+            },
+            {
+                "arg1":46,
+                "arg2":47,
+                "label":"domain"
+            },
+            {
+                "arg1":48,
+                "arg2":49,
+                "label":"domain"
+            },
+            {
+                "arg1":45,
+                "arg2":46,
+                "label":"in-time"
+            },
+            {
+                "arg1":45,
+                "arg2":48,
+                "label":"in-time"
+            }
+        ],
         "text":"Los esguinces pueden tardar algunas semanas o hasta varios meses en sanar completamente.",
         "tokens":[
             "[CLS]",
@@ -1456,7 +1684,48 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":58,
+                "arg2":57,
+                "label":"is-a"
+            },
+            {
+                "arg1":59,
+                "arg2":57,
+                "label":"is-a"
+            },
+            {
+                "arg1":54,
+                "arg2":55,
+                "label":"target"
+            },
+            {
+                "arg1":53,
+                "arg2":55,
+                "label":"target"
+            },
+            {
+                "arg1":52,
+                "arg2":53,
+                "label":"target"
+            },
+            {
+                "arg1":52,
+                "arg2":54,
+                "label":"target"
+            },
+            {
+                "arg1":56,
+                "arg2":57,
+                "label":"in-context"
+            },
+            {
+                "arg1":55,
+                "arg2":56,
+                "label":"target"
+            }
+        ],
         "text":"Tambi\u00e9n se usan para diagnosticar y ayudar a encontrar la causa de enfermedades de la tiroides, incluyendo el hipertiroidismo y el hipotiroidismo.",
         "tokens":[
             "[CLS]",
@@ -1720,7 +1989,58 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":63,
+                "arg2":64,
+                "label":"in-context"
+            },
+            {
+                "arg1":68,
+                "arg2":70,
+                "label":"domain"
+            },
+            {
+                "arg1":68,
+                "arg2":69,
+                "label":"arg"
+            },
+            {
+                "arg1":65,
+                "arg2":66,
+                "label":"arg"
+            },
+            {
+                "arg1":67,
+                "arg2":68,
+                "label":"arg"
+            },
+            {
+                "arg1":62,
+                "arg2":63,
+                "label":"target"
+            },
+            {
+                "arg1":62,
+                "arg2":65,
+                "label":"in-place"
+            },
+            {
+                "arg1":62,
+                "arg2":67,
+                "label":"in-place"
+            },
+            {
+                "arg1":62,
+                "arg2":61,
+                "label":"subject"
+            },
+            {
+                "arg1":60,
+                "arg2":62,
+                "label":"is-a"
+            }
+        ],
         "text":"Las arterias son vasos sangu\u00edneos que transportan sangre oxigenada desde el coraz\u00f3n hacia otras partes del cuerpo.",
         "tokens":[
             "[CLS]",
@@ -1957,7 +2277,58 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":75,
+                "arg2":76,
+                "label":"in-time"
+            },
+            {
+                "arg1":74,
+                "arg2":76,
+                "label":"in-time"
+            },
+            {
+                "arg1":71,
+                "arg2":72,
+                "label":"target"
+            },
+            {
+                "arg1":71,
+                "arg2":73,
+                "label":"in-context"
+            },
+            {
+                "arg1":71,
+                "arg2":75,
+                "label":"in-context"
+            },
+            {
+                "arg1":71,
+                "arg2":74,
+                "label":"in-context"
+            },
+            {
+                "arg1":77,
+                "arg2":71,
+                "label":"subject"
+            },
+            {
+                "arg1":79,
+                "arg2":80,
+                "label":"in-context"
+            },
+            {
+                "arg1":78,
+                "arg2":79,
+                "label":"target"
+            },
+            {
+                "arg1":77,
+                "arg2":78,
+                "label":"target"
+            }
+        ],
         "text":"Cuidar su salud mediante el ejercicio y los ex\u00e1menes f\u00edsicos y oculares peri\u00f3dicos puede ayudarlo a reducir sus probabilidades de caerse.",
         "tokens":[
             "[CLS]",
@@ -2168,7 +2539,53 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":81,
+                "arg2":82,
+                "label":"in-context"
+            },
+            {
+                "arg1":81,
+                "arg2":83,
+                "label":"in-context"
+            },
+            {
+                "arg1":84,
+                "arg2":81,
+                "label":"subject"
+            },
+            {
+                "arg1":84,
+                "arg2":85,
+                "label":"in-context"
+            },
+            {
+                "arg1":85,
+                "arg2":86,
+                "label":"in-context"
+            },
+            {
+                "arg1":84,
+                "arg2":87,
+                "label":"in-time"
+            },
+            {
+                "arg1":88,
+                "arg2":81,
+                "label":"subject"
+            },
+            {
+                "arg1":88,
+                "arg2":89,
+                "label":"target"
+            },
+            {
+                "arg1":87,
+                "arg2":88,
+                "label":"arg"
+            }
+        ],
         "text":"Las personas que est\u00e1n dormidas o intoxicadas pueden morir de envenenamiento por CO antes de presentar s\u00edntomas.",
         "tokens":[
             "[CLS]",
@@ -2400,7 +2817,53 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":93,
+                "arg2":94,
+                "label":"in-context"
+            },
+            {
+                "arg1":97,
+                "arg2":98,
+                "label":"in-context"
+            },
+            {
+                "arg1":96,
+                "arg2":97,
+                "label":"arg"
+            },
+            {
+                "arg1":92,
+                "arg2":93,
+                "label":"arg"
+            },
+            {
+                "arg1":95,
+                "arg2":96,
+                "label":"in-place"
+            },
+            {
+                "arg1":91,
+                "arg2":92,
+                "label":"in-place"
+            },
+            {
+                "arg1":91,
+                "arg2":90,
+                "label":"subject"
+            },
+            {
+                "arg1":95,
+                "arg2":90,
+                "label":"subject"
+            },
+            {
+                "arg1":95,
+                "arg2":99,
+                "label":"causes"
+            }
+        ],
         "text":"Los gl\u00f3bulos blancos se dirigen hacia el \u00e1rea infectada, se acumulan dentro del tejido lesionado y causan inflamaci\u00f3n.",
         "tokens":[
             "[CLS]",
@@ -2606,7 +3069,48 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":101,
+                "arg2":100,
+                "label":"part-of"
+            },
+            {
+                "arg1":101,
+                "arg2":102,
+                "label":"in-context"
+            },
+            {
+                "arg1":101,
+                "arg2":105,
+                "label":"causes"
+            },
+            {
+                "arg1":101,
+                "arg2":103,
+                "label":"in-context"
+            },
+            {
+                "arg1":101,
+                "arg2":104,
+                "label":"in-context"
+            },
+            {
+                "arg1":105,
+                "arg2":106,
+                "label":"target"
+            },
+            {
+                "arg1":106,
+                "arg2":107,
+                "label":"in-place"
+            },
+            {
+                "arg1":108,
+                "arg2":100,
+                "label":"part-of"
+            }
+        ],
         "text":"Los tratamientos incluyen cambios en la dieta, medicinas, ejercicios para fortalecer los m\u00fasculos del \u00e1rea o cirug\u00eda.",
         "tokens":[
             "[CLS]",
@@ -2831,7 +3335,53 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":116,
+                "arg2":117,
+                "label":"in-place"
+            },
+            {
+                "arg1":116,
+                "arg2":118,
+                "label":"in-place"
+            },
+            {
+                "arg1":116,
+                "arg2":115,
+                "label":"subject"
+            },
+            {
+                "arg1":114,
+                "arg2":116,
+                "label":"target"
+            },
+            {
+                "arg1":113,
+                "arg2":114,
+                "label":"target"
+            },
+            {
+                "arg1":111,
+                "arg2":112,
+                "label":"is-a"
+            },
+            {
+                "arg1":113,
+                "arg2":111,
+                "label":"subject"
+            },
+            {
+                "arg1":110,
+                "arg2":109,
+                "label":"subject"
+            },
+            {
+                "arg1":113,
+                "arg2":109,
+                "label":"in-time"
+            }
+        ],
         "text":"Cuando el ni\u00f1o traga, este m\u00fasculo se relaja para dejar que los alimentos pasen del es\u00f3fago al est\u00f3mago.",
         "tokens":[
             "[CLS]",
@@ -3019,7 +3569,48 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":120,
+                "arg2":119,
+                "label":"subject"
+            },
+            {
+                "arg1":125,
+                "arg2":124,
+                "label":"subject"
+            },
+            {
+                "arg1":125,
+                "arg2":119,
+                "label":"target"
+            },
+            {
+                "arg1":125,
+                "arg2":126,
+                "label":"in-time"
+            },
+            {
+                "arg1":123,
+                "arg2":125,
+                "label":"target"
+            },
+            {
+                "arg1":123,
+                "arg2":122,
+                "label":"subject"
+            },
+            {
+                "arg1":121,
+                "arg2":123,
+                "label":"target"
+            },
+            {
+                "arg1":120,
+                "arg2":121,
+                "label":"entails"
+            }
+        ],
         "text":"Si los ri\u00f1ones fallan, necesitar\u00e1 tratamiento para reemplazar las funciones que hacen normalmente.",
         "tokens":[
             "[CLS]",
@@ -3164,7 +3755,28 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":128,
+                "arg2":127,
+                "label":"is-a"
+            },
+            {
+                "arg1":129,
+                "arg2":127,
+                "label":"is-a"
+            },
+            {
+                "arg1":130,
+                "arg2":127,
+                "label":"is-a"
+            },
+            {
+                "arg1":131,
+                "arg2":127,
+                "label":"is-a"
+            }
+        ],
         "text":"Existen muchas causas, incluyendo factores gen\u00e9ticos, biol\u00f3gicos, ambientales y psicol\u00f3gicos.",
         "tokens":[
             "[CLS]",
@@ -3289,7 +3901,28 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":132,
+                "arg2":133,
+                "label":"causes"
+            },
+            {
+                "arg1":132,
+                "arg2":134,
+                "label":"causes"
+            },
+            {
+                "arg1":132,
+                "arg2":135,
+                "label":"causes"
+            },
+            {
+                "arg1":132,
+                "arg2":136,
+                "label":"causes"
+            }
+        ],
         "text":"Cuando se tiene ci\u00e1tica, se siente dolor, debilidad, entumecimiento u hormigueo.",
         "tokens":[
             "[CLS]",
@@ -3425,7 +4058,28 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":140,
+                "arg2":141,
+                "label":"in-context"
+            },
+            {
+                "arg1":137,
+                "arg2":138,
+                "label":"domain"
+            },
+            {
+                "arg1":140,
+                "arg2":139,
+                "label":"causes"
+            },
+            {
+                "arg1":139,
+                "arg2":137,
+                "label":"in-place"
+            }
+        ],
         "text":"Algunas personas desarrollan verrugas genitales por infecci\u00f3n con VPH, pero otras no muestran s\u00edntomas.",
         "tokens":[
             "[CLS]",
@@ -3582,7 +4236,28 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":142,
+                "arg2":143,
+                "label":"entails"
+            },
+            {
+                "arg1":143,
+                "arg2":144,
+                "label":"arg"
+            },
+            {
+                "arg1":146,
+                "arg2":144,
+                "label":"arg"
+            },
+            {
+                "arg1":145,
+                "arg2":146,
+                "label":"entails"
+            }
+        ],
         "text":"En el s\u00edndrome de Cushing, hay demasiado cortisol, mientras que en la enfermedad de Addison, hay muy poco.",
         "tokens":[
             "[CLS]",
@@ -3856,7 +4531,68 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":149,
+                "arg2":148,
+                "label":"causes"
+            },
+            {
+                "arg1":147,
+                "arg2":148,
+                "label":"target"
+            },
+            {
+                "arg1":151,
+                "arg2":150,
+                "label":"subject"
+            },
+            {
+                "arg1":151,
+                "arg2":152,
+                "label":"target"
+            },
+            {
+                "arg1":153,
+                "arg2":154,
+                "label":"target"
+            },
+            {
+                "arg1":156,
+                "arg2":158,
+                "label":"in-context"
+            },
+            {
+                "arg1":157,
+                "arg2":158,
+                "label":"in-context"
+            },
+            {
+                "arg1":151,
+                "arg2":147,
+                "label":"in-context"
+            },
+            {
+                "arg1":155,
+                "arg2":156,
+                "label":"in-context"
+            },
+            {
+                "arg1":155,
+                "arg2":157,
+                "label":"in-context"
+            },
+            {
+                "arg1":151,
+                "arg2":153,
+                "label":"in-context"
+            },
+            {
+                "arg1":153,
+                "arg2":155,
+                "label":"in-place"
+            }
+        ],
         "text":"Para diagnosticar la neumon\u00eda por Pneumocystis, los m\u00e9dicos usan un microscopio para buscar el hongo en una muestra de fluido o tejido pulmonar.",
         "tokens":[
             "[CLS]",
@@ -4055,7 +4791,43 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":165,
+                "arg2":166,
+                "label":"arg"
+            },
+            {
+                "arg1":164,
+                "arg2":163,
+                "label":"subject"
+            },
+            {
+                "arg1":164,
+                "arg2":165,
+                "label":"in-context"
+            },
+            {
+                "arg1":161,
+                "arg2":162,
+                "label":"domain"
+            },
+            {
+                "arg1":160,
+                "arg2":161,
+                "label":"in-time"
+            },
+            {
+                "arg1":160,
+                "arg2":159,
+                "label":"in-place"
+            },
+            {
+                "arg1":164,
+                "arg2":160,
+                "label":"causes"
+            }
+        ],
         "text":"En la psoriasis, ocurre en algunos d\u00edas debido a que las c\u00e9lulas avanzan demasiado r\u00e1pido.",
         "tokens":[
             "[CLS]",
@@ -4203,7 +4975,33 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":168,
+                "arg2":169,
+                "label":"in-context"
+            },
+            {
+                "arg1":167,
+                "arg2":168,
+                "label":"is-a"
+            },
+            {
+                "arg1":170,
+                "arg2":171,
+                "label":"in-context"
+            },
+            {
+                "arg1":170,
+                "arg2":172,
+                "label":"in-place"
+            },
+            {
+                "arg1":167,
+                "arg2":170,
+                "label":"causes"
+            }
+        ],
         "text":"La diston\u00eda es un trastorno del movimiento que causa contracciones involuntarias de los m\u00fasculos.",
         "tokens":[
             "[CLS]",
@@ -4318,7 +5116,23 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":174,
+                "arg2":173,
+                "label":"subject"
+            },
+            {
+                "arg1":174,
+                "arg2":175,
+                "label":"target"
+            },
+            {
+                "arg1":174,
+                "arg2":176,
+                "label":"causes"
+            }
+        ],
         "text":"Si el \u00f3vulo es fecundando por un espermatozoide, puede producir un embarazo.",
         "tokens":[
             "[CLS]",
@@ -4505,7 +5319,38 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":177,
+                "arg2":178,
+                "label":"target"
+            },
+            {
+                "arg1":177,
+                "arg2":179,
+                "label":"target"
+            },
+            {
+                "arg1":177,
+                "arg2":180,
+                "label":"target"
+            },
+            {
+                "arg1":177,
+                "arg2":181,
+                "label":"target"
+            },
+            {
+                "arg1":177,
+                "arg2":182,
+                "label":"target"
+            },
+            {
+                "arg1":177,
+                "arg2":183,
+                "label":"target"
+            }
+        ],
         "text":"Afecta principalmente los pulmones, el p\u00e1ncreas, el h\u00edgado, los intestinos, los senos paranasales y los \u00f3rganos sexuales.",
         "tokens":[
             "[CLS]",
@@ -4691,7 +5536,43 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":186,
+                "arg2":185,
+                "label":"subject"
+            },
+            {
+                "arg1":187,
+                "arg2":185,
+                "label":"subject"
+            },
+            {
+                "arg1":186,
+                "arg2":184,
+                "label":"in-time"
+            },
+            {
+                "arg1":186,
+                "arg2":187,
+                "label":"target"
+            },
+            {
+                "arg1":187,
+                "arg2":188,
+                "label":"target"
+            },
+            {
+                "arg1":189,
+                "arg2":190,
+                "label":"in-context"
+            },
+            {
+                "arg1":188,
+                "arg2":189,
+                "label":"arg"
+            }
+        ],
         "text":"El 2 de marzo, los CDC dejaron de publicar la cantidad de pruebas realizadas.",
         "tokens":[
             "[CLS]",
@@ -4897,7 +5778,48 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":197,
+                "arg2":196,
+                "label":"in-context"
+            },
+            {
+                "arg1":197,
+                "arg2":198,
+                "label":"subject"
+            },
+            {
+                "arg1":197,
+                "arg2":199,
+                "label":"target"
+            },
+            {
+                "arg1":195,
+                "arg2":197,
+                "label":"target"
+            },
+            {
+                "arg1":193,
+                "arg2":192,
+                "label":"subject"
+            },
+            {
+                "arg1":193,
+                "arg2":194,
+                "label":"in-place"
+            },
+            {
+                "arg1":191,
+                "arg2":193,
+                "label":"in-context"
+            },
+            {
+                "arg1":195,
+                "arg2":191,
+                "label":"subject"
+            }
+        ],
         "text":"Ex\u00e1menes realizados a tres de los infectados en Reino Unido revelaron que el virus se transmite de persona a persona.",
         "tokens":[
             "[CLS]",
@@ -5048,7 +5970,33 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":201,
+                "arg2":200,
+                "label":"subject"
+            },
+            {
+                "arg1":201,
+                "arg2":202,
+                "label":"target"
+            },
+            {
+                "arg1":202,
+                "arg2":203,
+                "label":"in-context"
+            },
+            {
+                "arg1":201,
+                "arg2":204,
+                "label":"in-context"
+            },
+            {
+                "arg1":204,
+                "arg2":205,
+                "label":"in-place"
+            }
+        ],
         "text":"Moderna est\u00e1 desarrollando una vacuna de ARNm con fondos de la CEPI.",
         "tokens":[
             "[CLS]",
@@ -5303,7 +6251,58 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":206,
+                "arg2":207,
+                "label":"in-context"
+            },
+            {
+                "arg1":206,
+                "arg2":208,
+                "label":"in-context"
+            },
+            {
+                "arg1":211,
+                "arg2":210,
+                "label":"subject"
+            },
+            {
+                "arg1":212,
+                "arg2":213,
+                "label":"in-context"
+            },
+            {
+                "arg1":211,
+                "arg2":212,
+                "label":"in-context"
+            },
+            {
+                "arg1":213,
+                "arg2":214,
+                "label":"in-place"
+            },
+            {
+                "arg1":209,
+                "arg2":206,
+                "label":"subject"
+            },
+            {
+                "arg1":209,
+                "arg2":211,
+                "label":"target"
+            },
+            {
+                "arg1":215,
+                "arg2":216,
+                "label":"arg"
+            },
+            {
+                "arg1":209,
+                "arg2":215,
+                "label":"in-time"
+            }
+        ],
         "text":"Los protocolos de prueba de los CDC no incluyeron pacientes que no viajan sin contacto conocido con China hasta el 28 de febrero.",
         "tokens":[
             "[CLS]",
@@ -5551,7 +6550,53 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":223,
+                "arg2":224,
+                "label":"in-place"
+            },
+            {
+                "arg1":225,
+                "arg2":226,
+                "label":"in-place"
+            },
+            {
+                "arg1":219,
+                "arg2":217,
+                "label":"in-time"
+            },
+            {
+                "arg1":219,
+                "arg2":218,
+                "label":"in-time"
+            },
+            {
+                "arg1":221,
+                "arg2":222,
+                "label":"in-context"
+            },
+            {
+                "arg1":221,
+                "arg2":225,
+                "label":"in-context"
+            },
+            {
+                "arg1":221,
+                "arg2":219,
+                "label":"in-context"
+            },
+            {
+                "arg1":220,
+                "arg2":221,
+                "label":"subject"
+            },
+            {
+                "arg1":223,
+                "arg2":221,
+                "label":"subject"
+            }
+        ],
         "text":"El d\u00eda 15 de marzo (a las 14h), hab\u00eda 992 casos confirmados de personas infectadas \u2014 ingresadas en hospitales o aisladas en casa.",
         "tokens":[
             "[CLS]",
@@ -5764,7 +6809,43 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":232,
+                "arg2":233,
+                "label":"in-context"
+            },
+            {
+                "arg1":229,
+                "arg2":228,
+                "label":"in-context"
+            },
+            {
+                "arg1":229,
+                "arg2":227,
+                "label":"in-place"
+            },
+            {
+                "arg1":230,
+                "arg2":229,
+                "label":"causes"
+            },
+            {
+                "arg1":229,
+                "arg2":231,
+                "label":"in-time"
+            },
+            {
+                "arg1":229,
+                "arg2":232,
+                "label":"subject"
+            },
+            {
+                "arg1":229,
+                "arg2":234,
+                "label":"in-place"
+            }
+        ],
         "text":"En B\u00e9lgica el primer fallecimiento por la pandemia tuvo lugar el 10 de marzo, una mujer de 90 a\u00f1os en Bruselas.",
         "tokens":[
             "[CLS]",
@@ -5907,7 +6988,28 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":236,
+                "arg2":237,
+                "label":"in-context"
+            },
+            {
+                "arg1":235,
+                "arg2":236,
+                "label":"has-property"
+            },
+            {
+                "arg1":236,
+                "arg2":238,
+                "label":"in-context"
+            },
+            {
+                "arg1":236,
+                "arg2":239,
+                "label":"has-property"
+            }
+        ],
         "text":"La enfermedad ha tenido una tasa promedio de mortalidad global cercana a un 13 %.",
         "tokens":[
             "[CLS]",
@@ -6192,7 +7294,63 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":240,
+                "arg2":241,
+                "label":"same-as"
+            },
+            {
+                "arg1":242,
+                "arg2":240,
+                "label":"subject"
+            },
+            {
+                "arg1":244,
+                "arg2":245,
+                "label":"in-place"
+            },
+            {
+                "arg1":243,
+                "arg2":244,
+                "label":"in-context"
+            },
+            {
+                "arg1":246,
+                "arg2":243,
+                "label":"subject"
+            },
+            {
+                "arg1":247,
+                "arg2":248,
+                "label":"arg"
+            },
+            {
+                "arg1":249,
+                "arg2":250,
+                "label":"in-context"
+            },
+            {
+                "arg1":250,
+                "arg2":251,
+                "label":"in-context"
+            },
+            {
+                "arg1":242,
+                "arg2":246,
+                "label":"target"
+            },
+            {
+                "arg1":248,
+                "arg2":249,
+                "label":"in-context"
+            },
+            {
+                "arg1":247,
+                "arg2":242,
+                "label":"causes"
+            }
+        ],
         "text":"La Organizaci\u00f3n Mundial de la Salud (OMS) hizo un llamado a los gobiernos de pa\u00edses de \u00c1frica a \"despertar\" ante el riesgo de incremento de casos de contagio de COVID-19.",
         "tokens":[
             "[CLS]",
@@ -6489,7 +7647,63 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":254,
+                "arg2":255,
+                "label":"domain"
+            },
+            {
+                "arg1":256,
+                "arg2":257,
+                "label":"in-place"
+            },
+            {
+                "arg1":262,
+                "arg2":263,
+                "label":"in-place"
+            },
+            {
+                "arg1":259,
+                "arg2":260,
+                "label":"in-context"
+            },
+            {
+                "arg1":260,
+                "arg2":261,
+                "label":"in-context"
+            },
+            {
+                "arg1":259,
+                "arg2":262,
+                "label":"in-place"
+            },
+            {
+                "arg1":256,
+                "arg2":259,
+                "label":"in-context"
+            },
+            {
+                "arg1":256,
+                "arg2":254,
+                "label":"is-a"
+            },
+            {
+                "arg1":253,
+                "arg2":256,
+                "label":"target"
+            },
+            {
+                "arg1":253,
+                "arg2":252,
+                "label":"in-time"
+            },
+            {
+                "arg1":257,
+                "arg2":258,
+                "label":"in-place"
+            }
+        ],
         "text":"Posteriormente se confirm\u00f3 que el segundo caso era un empleado del Servicio Postal de los EE.UU. en su centro de distribuci\u00f3n de red en Federal Way, Washington.",
         "tokens":[
             "[CLS]",
@@ -6593,7 +7807,18 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":264,
+                "arg2":265,
+                "label":"in-context"
+            },
+            {
+                "arg1":264,
+                "arg2":266,
+                "label":"has-property"
+            }
+        ],
         "text":"Sin embargo, los datos de los CDC est\u00e1n incompletos.",
         "tokens":[
             "[CLS]",
@@ -6826,7 +8051,43 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":268,
+                "arg2":269,
+                "label":"in-context"
+            },
+            {
+                "arg1":270,
+                "arg2":268,
+                "label":"subject"
+            },
+            {
+                "arg1":270,
+                "arg2":271,
+                "label":"in-place"
+            },
+            {
+                "arg1":270,
+                "arg2":272,
+                "label":"in-place"
+            },
+            {
+                "arg1":273,
+                "arg2":270,
+                "label":"subject"
+            },
+            {
+                "arg1":273,
+                "arg2":274,
+                "label":"target"
+            },
+            {
+                "arg1":273,
+                "arg2":267,
+                "label":"in-time"
+            }
+        ],
         "text":"El 21 de febrero, cinco ciudadanos estadounidenses evacuados del Diamond Princess a la Base de la Fuerza A\u00e9rea Travis dieron positivo.",
         "tokens":[
             "[CLS]",
@@ -7259,7 +8520,98 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":276,
+                "arg2":277,
+                "label":"domain"
+            },
+            {
+                "arg1":281,
+                "arg2":276,
+                "label":"subject"
+            },
+            {
+                "arg1":276,
+                "arg2":278,
+                "label":"in-place"
+            },
+            {
+                "arg1":280,
+                "arg2":279,
+                "label":"in-context"
+            },
+            {
+                "arg1":277,
+                "arg2":280,
+                "label":"in-context"
+            },
+            {
+                "arg1":281,
+                "arg2":282,
+                "label":"in-place"
+            },
+            {
+                "arg1":283,
+                "arg2":284,
+                "label":"in-context"
+            },
+            {
+                "arg1":286,
+                "arg2":283,
+                "label":"subject"
+            },
+            {
+                "arg1":286,
+                "arg2":285,
+                "label":"in-time"
+            },
+            {
+                "arg1":286,
+                "arg2":287,
+                "label":"target"
+            },
+            {
+                "arg1":286,
+                "arg2":288,
+                "label":"target"
+            },
+            {
+                "arg1":281,
+                "arg2":275,
+                "label":"in-time"
+            },
+            {
+                "arg1":281,
+                "arg2":286,
+                "label":"is-a"
+            },
+            {
+                "arg1":289,
+                "arg2":290,
+                "label":"domain"
+            },
+            {
+                "arg1":291,
+                "arg2":289,
+                "label":"subject"
+            },
+            {
+                "arg1":292,
+                "arg2":293,
+                "label":"arg"
+            },
+            {
+                "arg1":291,
+                "arg2":292,
+                "label":"in-place"
+            },
+            {
+                "arg1":281,
+                "arg2":291,
+                "label":"same-as"
+            }
+        ],
         "text":"En febrero de 2013, el primer caso en el Reino Unido del nuevo coronavirus fue confirmado en Manchester en un hombre de edad avanzada que recientemente hab\u00eda visitado el Oriente Medio y Pakist\u00e1n; fue el d\u00e9cimo caso reportado a nivel global.",
         "tokens":[
             "[CLS]",
@@ -7609,7 +8961,73 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":295,
+                "arg2":296,
+                "label":"domain"
+            },
+            {
+                "arg1":296,
+                "arg2":297,
+                "label":"in-context"
+            },
+            {
+                "arg1":294,
+                "arg2":295,
+                "label":"is-a"
+            },
+            {
+                "arg1":298,
+                "arg2":294,
+                "label":"subject"
+            },
+            {
+                "arg1":300,
+                "arg2":299,
+                "label":"subject"
+            },
+            {
+                "arg1":302,
+                "arg2":303,
+                "label":"in-context"
+            },
+            {
+                "arg1":299,
+                "arg2":301,
+                "label":"in-context"
+            },
+            {
+                "arg1":298,
+                "arg2":300,
+                "label":"target"
+            },
+            {
+                "arg1":302,
+                "arg2":300,
+                "label":"is-a"
+            },
+            {
+                "arg1":307,
+                "arg2":300,
+                "label":"is-a"
+            },
+            {
+                "arg1":302,
+                "arg2":304,
+                "label":"in-context"
+            },
+            {
+                "arg1":302,
+                "arg2":305,
+                "label":"in-context"
+            },
+            {
+                "arg1":302,
+                "arg2":306,
+                "label":"in-context"
+            }
+        ],
         "text":"Giuseppe Conte, primer ministro italiano, ha declarado una serie de actividades que no ser\u00e1n detenidas y que son esenciales como servicios postales, de seguros, financieros, de transporte, as\u00ed como la venta de v\u00edveres.",
         "tokens":[
             "[CLS]",
@@ -7843,7 +9261,53 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":310,
+                "arg2":309,
+                "label":"subject"
+            },
+            {
+                "arg1":310,
+                "arg2":311,
+                "label":"in-place"
+            },
+            {
+                "arg1":308,
+                "arg2":310,
+                "label":"target"
+            },
+            {
+                "arg1":312,
+                "arg2":310,
+                "label":"subject"
+            },
+            {
+                "arg1":312,
+                "arg2":314,
+                "label":"in-place"
+            },
+            {
+                "arg1":312,
+                "arg2":308,
+                "label":"is-a"
+            },
+            {
+                "arg1":312,
+                "arg2":313,
+                "label":"in-time"
+            },
+            {
+                "arg1":315,
+                "arg2":316,
+                "label":"target"
+            },
+            {
+                "arg1":312,
+                "arg2":315,
+                "label":"in-context"
+            }
+        ],
         "text":"Por ello se mantienen restricciones a los viajeros que llegan a China como mantenerlos en 14 d\u00edas de aislamiento para descartar que est\u00e9n enfermos.",
         "tokens":[
             "[CLS]",
@@ -8129,7 +9593,63 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":318,
+                "arg2":319,
+                "label":"in-context"
+            },
+            {
+                "arg1":317,
+                "arg2":318,
+                "label":"in-context"
+            },
+            {
+                "arg1":320,
+                "arg2":317,
+                "label":"subject"
+            },
+            {
+                "arg1":321,
+                "arg2":322,
+                "label":"arg"
+            },
+            {
+                "arg1":326,
+                "arg2":321,
+                "label":"domain"
+            },
+            {
+                "arg1":321,
+                "arg2":324,
+                "label":"arg"
+            },
+            {
+                "arg1":322,
+                "arg2":323,
+                "label":"in-context"
+            },
+            {
+                "arg1":324,
+                "arg2":325,
+                "label":"in-context"
+            },
+            {
+                "arg1":327,
+                "arg2":328,
+                "label":"domain"
+            },
+            {
+                "arg1":326,
+                "arg2":327,
+                "label":"arg"
+            },
+            {
+                "arg1":320,
+                "arg2":326,
+                "label":"target"
+            }
+        ],
         "text":"Algunas fuentes no gubernamentales iran\u00edes estiman que el n\u00famero de infecciones por SARS-CoV-2 y muertes por COVID-19 son mucho mayores que los valores oficiales.",
         "tokens":[
             "[CLS]",
@@ -8336,7 +9856,38 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":330,
+                "arg2":329,
+                "label":"subject"
+            },
+            {
+                "arg1":330,
+                "arg2":331,
+                "label":"in-time"
+            },
+            {
+                "arg1":332,
+                "arg2":333,
+                "label":"domain"
+            },
+            {
+                "arg1":334,
+                "arg2":332,
+                "label":"subject"
+            },
+            {
+                "arg1":334,
+                "arg2":335,
+                "label":"in-time"
+            },
+            {
+                "arg1":334,
+                "arg2":336,
+                "label":"target"
+            }
+        ],
         "text":"Dos casos m\u00e1s fueron confirmados al final del d\u00eda; Todos los individuos regresaron recientemente de China.",
         "tokens":[
             "[CLS]",
@@ -8607,7 +10158,63 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":337,
+                "arg2":338,
+                "label":"in-context"
+            },
+            {
+                "arg1":340,
+                "arg2":337,
+                "label":"subject"
+            },
+            {
+                "arg1":340,
+                "arg2":339,
+                "label":"in-time"
+            },
+            {
+                "arg1":340,
+                "arg2":341,
+                "label":"target"
+            },
+            {
+                "arg1":343,
+                "arg2":342,
+                "label":"in-context"
+            },
+            {
+                "arg1":343,
+                "arg2":344,
+                "label":"in-context"
+            },
+            {
+                "arg1":340,
+                "arg2":343,
+                "label":"target"
+            },
+            {
+                "arg1":345,
+                "arg2":343,
+                "label":"subject"
+            },
+            {
+                "arg1":346,
+                "arg2":347,
+                "label":"in-context"
+            },
+            {
+                "arg1":345,
+                "arg2":346,
+                "label":"in-context"
+            },
+            {
+                "arg1":346,
+                "arg2":348,
+                "label":"in-context"
+            }
+        ],
         "text":"Cient\u00edficos chinos posteriormente enlazaron la neumon\u00eda a una nueva cepa de coronavirus, la cual recibi\u00f3 la designaci\u00f3n inicial de 2019-nCoV.",
         "tokens":[
             "[CLS]",
@@ -8835,7 +10442,43 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":351,
+                "arg2":350,
+                "label":"subject"
+            },
+            {
+                "arg1":351,
+                "arg2":349,
+                "label":"in-time"
+            },
+            {
+                "arg1":353,
+                "arg2":352,
+                "label":"subject"
+            },
+            {
+                "arg1":354,
+                "arg2":352,
+                "label":"subject"
+            },
+            {
+                "arg1":354,
+                "arg2":355,
+                "label":"in-place"
+            },
+            {
+                "arg1":351,
+                "arg2":353,
+                "label":"target"
+            },
+            {
+                "arg1":351,
+                "arg2":354,
+                "label":"target"
+            }
+        ],
         "text":"El 21 de febrero, el Departamento de Salud del Condado de Maricopa confirm\u00f3 que el paciente ya no estaba infectado y estaba fuera de aislamiento.",
         "tokens":[
             "[CLS]",
@@ -9037,7 +10680,43 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":356,
+                "arg2":358,
+                "label":"in-place"
+            },
+            {
+                "arg1":356,
+                "arg2":359,
+                "label":"in-place"
+            },
+            {
+                "arg1":356,
+                "arg2":360,
+                "label":"in-place"
+            },
+            {
+                "arg1":356,
+                "arg2":361,
+                "label":"in-place"
+            },
+            {
+                "arg1":356,
+                "arg2":362,
+                "label":"in-place"
+            },
+            {
+                "arg1":356,
+                "arg2":363,
+                "label":"in-place"
+            },
+            {
+                "arg1":356,
+                "arg2":357,
+                "label":"in-context"
+            }
+        ],
         "text":"Otros mecanismos inmunitarios b\u00e1sicos se encuentran en eucariontes, plantas, peces, reptiles e insectos, as\u00ed como en mam\u00edferos.",
         "tokens":[
             "[CLS]",
@@ -9512,7 +11191,108 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":377,
+                "arg2":376,
+                "label":"is-a"
+            },
+            {
+                "arg1":364,
+                "arg2":365,
+                "label":"domain"
+            },
+            {
+                "arg1":380,
+                "arg2":381,
+                "label":"domain"
+            },
+            {
+                "arg1":365,
+                "arg2":366,
+                "label":"in-context"
+            },
+            {
+                "arg1":366,
+                "arg2":367,
+                "label":"in-context"
+            },
+            {
+                "arg1":367,
+                "arg2":368,
+                "label":"in-context"
+            },
+            {
+                "arg1":364,
+                "arg2":369,
+                "label":"in-time"
+            },
+            {
+                "arg1":364,
+                "arg2":370,
+                "label":"in-place"
+            },
+            {
+                "arg1":373,
+                "arg2":374,
+                "label":"in-context"
+            },
+            {
+                "arg1":373,
+                "arg2":372,
+                "label":"in-place"
+            },
+            {
+                "arg1":373,
+                "arg2":371,
+                "label":"in-time"
+            },
+            {
+                "arg1":375,
+                "arg2":373,
+                "label":"subject"
+            },
+            {
+                "arg1":375,
+                "arg2":377,
+                "label":"target"
+            },
+            {
+                "arg1":378,
+                "arg2":379,
+                "label":"in-time"
+            },
+            {
+                "arg1":378,
+                "arg2":375,
+                "label":"subject"
+            },
+            {
+                "arg1":381,
+                "arg2":382,
+                "label":"in-context"
+            },
+            {
+                "arg1":380,
+                "arg2":383,
+                "label":"in-place"
+            },
+            {
+                "arg1":383,
+                "arg2":384,
+                "label":"arg"
+            },
+            {
+                "arg1":378,
+                "arg2":364,
+                "label":"same-as"
+            },
+            {
+                "arg1":378,
+                "arg2":380,
+                "label":"same-as"
+            }
+        ],
         "text":"El primer caso de la pandemia de enfermedad por coronavirus de 2020 en Europa fue el 25 de enero en Francia, un hombre de 80 a\u00f1os procedente de la provincia de Hubei, que luego falleci\u00f3 el 15 de febrero, siendo as\u00ed la primera muerte por COVID-19 fuera de Asia.",
         "tokens":[
             "[CLS]",
@@ -9793,7 +11573,63 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":385,
+                "arg2":386,
+                "label":"domain"
+            },
+            {
+                "arg1":388,
+                "arg2":389,
+                "label":"in-context"
+            },
+            {
+                "arg1":390,
+                "arg2":391,
+                "label":"in-context"
+            },
+            {
+                "arg1":392,
+                "arg2":393,
+                "label":"domain"
+            },
+            {
+                "arg1":393,
+                "arg2":394,
+                "label":"in-context"
+            },
+            {
+                "arg1":393,
+                "arg2":395,
+                "label":"in-context"
+            },
+            {
+                "arg1":390,
+                "arg2":392,
+                "label":"in-context"
+            },
+            {
+                "arg1":388,
+                "arg2":390,
+                "label":"causes"
+            },
+            {
+                "arg1":387,
+                "arg2":385,
+                "label":"in-place"
+            },
+            {
+                "arg1":387,
+                "arg2":388,
+                "label":"target"
+            },
+            {
+                "arg1":387,
+                "arg2":390,
+                "label":"target"
+            }
+        ],
         "text":"En ciertas localidades se observaron compras de p\u00e1nico y la consiguiente escasez de comida y otros art\u00edculos esenciales de abastecimiento.",
         "tokens":[
             "[CLS]",
@@ -9938,7 +11774,28 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":397,
+                "arg2":396,
+                "label":"in-time"
+            },
+            {
+                "arg1":399,
+                "arg2":398,
+                "label":"subject"
+            },
+            {
+                "arg1":399,
+                "arg2":400,
+                "label":"target"
+            },
+            {
+                "arg1":397,
+                "arg2":399,
+                "label":"target"
+            }
+        ],
         "text":"El 18 de marzo, se anunci\u00f3 que el Reino Unido cerrar\u00e1 todas las escuelas.",
         "tokens":[
             "[CLS]",
@@ -10318,7 +12175,83 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":402,
+                "arg2":403,
+                "label":"domain"
+            },
+            {
+                "arg1":402,
+                "arg2":401,
+                "label":"arg"
+            },
+            {
+                "arg1":404,
+                "arg2":405,
+                "label":"in-context"
+            },
+            {
+                "arg1":405,
+                "arg2":406,
+                "label":"in-context"
+            },
+            {
+                "arg1":409,
+                "arg2":410,
+                "label":"in-time"
+            },
+            {
+                "arg1":412,
+                "arg2":413,
+                "label":"domain"
+            },
+            {
+                "arg1":414,
+                "arg2":415,
+                "label":"in-context"
+            },
+            {
+                "arg1":416,
+                "arg2":417,
+                "label":"subject"
+            },
+            {
+                "arg1":402,
+                "arg2":408,
+                "label":"in-place"
+            },
+            {
+                "arg1":409,
+                "arg2":402,
+                "label":"target"
+            },
+            {
+                "arg1":403,
+                "arg2":404,
+                "label":"in-context"
+            },
+            {
+                "arg1":402,
+                "arg2":407,
+                "label":"in-time"
+            },
+            {
+                "arg1":411,
+                "arg2":412,
+                "label":"is-a"
+            },
+            {
+                "arg1":412,
+                "arg2":414,
+                "label":"in-place"
+            },
+            {
+                "arg1":412,
+                "arg2":416,
+                "label":"in-context"
+            }
+        ],
         "text":"Los dos primeros casos de la pandemia de enfermedad por coronavirus de 2019-2020 en Portugal se informaron el 2 de marzo de 2020, siendo este el \u00faltimo pa\u00eds de Europa occidental al cual lleg\u00f3 el virus.",
         "tokens":[
             "[CLS]",
@@ -10694,7 +12627,63 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":419,
+                "arg2":420,
+                "label":"in-place"
+            },
+            {
+                "arg1":420,
+                "arg2":421,
+                "label":"in-place"
+            },
+            {
+                "arg1":418,
+                "arg2":419,
+                "label":"is-a"
+            },
+            {
+                "arg1":422,
+                "arg2":418,
+                "label":"subject"
+            },
+            {
+                "arg1":423,
+                "arg2":424,
+                "label":"in-context"
+            },
+            {
+                "arg1":425,
+                "arg2":423,
+                "label":"subject"
+            },
+            {
+                "arg1":426,
+                "arg2":427,
+                "label":"in-context"
+            },
+            {
+                "arg1":428,
+                "arg2":426,
+                "label":"subject"
+            },
+            {
+                "arg1":428,
+                "arg2":429,
+                "label":"in-time"
+            },
+            {
+                "arg1":425,
+                "arg2":428,
+                "label":"target"
+            },
+            {
+                "arg1":422,
+                "arg2":425,
+                "label":"target"
+            }
+        ],
         "text":"Hugo L\u00f3pez-Gatell, subsecretario de Prevenci\u00f3n y Promoci\u00f3n de la Salud en la Secretar\u00eda de Salud de M\u00e9xico, anunci\u00f3 que al igual que otros pa\u00edses, las previsiones cient\u00edficas determinan que la epidemia de COVID-19 podr\u00eda prolongarse por doce semanas.",
         "tokens":[
             "[CLS]",
@@ -10967,7 +12956,38 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":435,
+                "arg2":434,
+                "label":"subject"
+            },
+            {
+                "arg1":435,
+                "arg2":436,
+                "label":"target"
+            },
+            {
+                "arg1":431,
+                "arg2":432,
+                "label":"in-context"
+            },
+            {
+                "arg1":432,
+                "arg2":433,
+                "label":"in-place"
+            },
+            {
+                "arg1":430,
+                "arg2":431,
+                "label":"is-a"
+            },
+            {
+                "arg1":435,
+                "arg2":430,
+                "label":"in-context"
+            }
+        ],
         "text":"Seg\u00fan el Dr. Tom Frieden, ex director de los Centros para el Control y la Prevenci\u00f3n de Enfermedades de los Estados Unidos, la pandemia no tiene precedentes.",
         "tokens":[
             "[CLS]",
@@ -11240,7 +13260,58 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":442,
+                "arg2":444,
+                "label":"domain"
+            },
+            {
+                "arg1":444,
+                "arg2":443,
+                "label":"in-context"
+            },
+            {
+                "arg1":446,
+                "arg2":445,
+                "label":"in-context"
+            },
+            {
+                "arg1":444,
+                "arg2":446,
+                "label":"in-context"
+            },
+            {
+                "arg1":439,
+                "arg2":438,
+                "label":"in-context"
+            },
+            {
+                "arg1":441,
+                "arg2":440,
+                "label":"in-context"
+            },
+            {
+                "arg1":437,
+                "arg2":441,
+                "label":"in-place"
+            },
+            {
+                "arg1":439,
+                "arg2":441,
+                "label":"in-place"
+            },
+            {
+                "arg1":442,
+                "arg2":437,
+                "label":"has-property"
+            },
+            {
+                "arg1":442,
+                "arg2":439,
+                "label":"has-property"
+            }
+        ],
         "text":"Moreover, conjunctival congestion and positive RT-PCR in pharyngeal swabs were found at the same time in four COVID-19 patients (cases 11, 20, 23, 24) who reported no eye disease history",
         "tokens":[
             "[CLS]",
@@ -11526,7 +13597,48 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":449,
+                "arg2":448,
+                "label":"in-context"
+            },
+            {
+                "arg1":447,
+                "arg2":450,
+                "label":"in-context"
+            },
+            {
+                "arg1":451,
+                "arg2":447,
+                "label":"subject"
+            },
+            {
+                "arg1":451,
+                "arg2":452,
+                "label":"target"
+            },
+            {
+                "arg1":454,
+                "arg2":455,
+                "label":"target"
+            },
+            {
+                "arg1":452,
+                "arg2":453,
+                "label":"target"
+            },
+            {
+                "arg1":451,
+                "arg2":454,
+                "label":"target"
+            },
+            {
+                "arg1":450,
+                "arg2":449,
+                "label":"in-context"
+            }
+        ],
         "text":"The 3D lung mask of an input chest CT volume helped to reduce background information and better detect COVID-19",
         "tokens":[
             "[CLS]",
@@ -11681,7 +13793,28 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":457,
+                "arg2":456,
+                "label":"in-context"
+            },
+            {
+                "arg1":460,
+                "arg2":459,
+                "label":"in-context"
+            },
+            {
+                "arg1":460,
+                "arg2":458,
+                "label":"has-property"
+            },
+            {
+                "arg1":457,
+                "arg2":460,
+                "label":"entails"
+            }
+        ],
         "text":"According to these findings, the fewer the TCR clones, the more severe the COVID-19 condition",
         "tokens":[
             "[CLS]",
@@ -12229,7 +14362,158 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":464,
+                "arg2":463,
+                "label":"has-property"
+            },
+            {
+                "arg1":461,
+                "arg2":462,
+                "label":"has-property"
+            },
+            {
+                "arg1":471,
+                "arg2":470,
+                "label":"in-context"
+            },
+            {
+                "arg1":474,
+                "arg2":473,
+                "label":"in-context"
+            },
+            {
+                "arg1":479,
+                "arg2":478,
+                "label":"in-context"
+            },
+            {
+                "arg1":484,
+                "arg2":482,
+                "label":"has-property"
+            },
+            {
+                "arg1":484,
+                "arg2":483,
+                "label":"in-context"
+            },
+            {
+                "arg1":465,
+                "arg2":466,
+                "label":"domain"
+            },
+            {
+                "arg1":464,
+                "arg2":465,
+                "label":"target"
+            },
+            {
+                "arg1":467,
+                "arg2":464,
+                "label":"entails"
+            },
+            {
+                "arg1":469,
+                "arg2":468,
+                "label":"subject"
+            },
+            {
+                "arg1":472,
+                "arg2":471,
+                "label":"target"
+            },
+            {
+                "arg1":469,
+                "arg2":472,
+                "label":"target"
+            },
+            {
+                "arg1":469,
+                "arg2":474,
+                "label":"has-property"
+            },
+            {
+                "arg1":475,
+                "arg2":474,
+                "label":"in-context"
+            },
+            {
+                "arg1":475,
+                "arg2":474,
+                "label":"arg"
+            },
+            {
+                "arg1":477,
+                "arg2":476,
+                "label":"subject"
+            },
+            {
+                "arg1":477,
+                "arg2":479,
+                "label":"target"
+            },
+            {
+                "arg1":477,
+                "arg2":474,
+                "label":"has-property"
+            },
+            {
+                "arg1":481,
+                "arg2":476,
+                "label":"subject"
+            },
+            {
+                "arg1":481,
+                "arg2":482,
+                "label":"target"
+            },
+            {
+                "arg1":474,
+                "arg2":480,
+                "label":"in-context"
+            },
+            {
+                "arg1":480,
+                "arg2":474,
+                "label":"arg"
+            },
+            {
+                "arg1":481,
+                "arg2":480,
+                "label":"has-property"
+            },
+            {
+                "arg1":461,
+                "arg2":469,
+                "label":"entails"
+            },
+            {
+                "arg1":461,
+                "arg2":477,
+                "label":"entails"
+            },
+            {
+                "arg1":461,
+                "arg2":481,
+                "label":"entails"
+            },
+            {
+                "arg1":464,
+                "arg2":469,
+                "label":"entails"
+            },
+            {
+                "arg1":464,
+                "arg2":477,
+                "label":"entails"
+            },
+            {
+                "arg1":464,
+                "arg2":481,
+                "label":"entails"
+            }
+        ],
         "text":"In conclusion, we suggest that in a scenario where containment is not possible and it is necessary to allow some infections to occur to achieve population immunity, interventions that protect vulnerable populations from getting infected should be given the highest priority, followed by interventions targeting the general population, and finally those targeting the least vulnerable, which for COVID-19 seem to be children",
         "tokens":[
             "[CLS]",
@@ -12689,7 +14973,88 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":488,
+                "arg2":487,
+                "label":"has-property"
+            },
+            {
+                "arg1":488,
+                "arg2":486,
+                "label":"has-property"
+            },
+            {
+                "arg1":485,
+                "arg2":488,
+                "label":"same-as"
+            },
+            {
+                "arg1":488,
+                "arg2":489,
+                "label":"in-context"
+            },
+            {
+                "arg1":490,
+                "arg2":485,
+                "label":"subject"
+            },
+            {
+                "arg1":491,
+                "arg2":492,
+                "label":"domain"
+            },
+            {
+                "arg1":493,
+                "arg2":494,
+                "label":"domain"
+            },
+            {
+                "arg1":490,
+                "arg2":491,
+                "label":"causes"
+            },
+            {
+                "arg1":490,
+                "arg2":493,
+                "label":"causes"
+            },
+            {
+                "arg1":495,
+                "arg2":496,
+                "label":"domain"
+            },
+            {
+                "arg1":491,
+                "arg2":495,
+                "label":"in-place"
+            },
+            {
+                "arg1":493,
+                "arg2":495,
+                "label":"in-place"
+            },
+            {
+                "arg1":495,
+                "arg2":497,
+                "label":"domain"
+            },
+            {
+                "arg1":495,
+                "arg2":498,
+                "label":"domain"
+            },
+            {
+                "arg1":493,
+                "arg2":499,
+                "label":"in-time"
+            },
+            {
+                "arg1":491,
+                "arg2":499,
+                "label":"in-time"
+            }
+        ],
         "text":"SARS-CoV-2 is the causative viral pathogen of COVID-19 of which the outbreaks resulted in 106,893 confirmed cases involving 3,639 deaths over 103 countries, areas or territories as of 07 March 2020",
         "tokens":[
             "[CLS]",
@@ -12856,7 +15221,23 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":500,
+                "arg2":501,
+                "label":"is-a"
+            },
+            {
+                "arg1":502,
+                "arg2":503,
+                "label":"target"
+            },
+            {
+                "arg1":502,
+                "arg2":500,
+                "label":"subject"
+            }
+        ],
         "text":"Other infections may therefore exacerbate COVID-19",
         "tokens":[
             "[CLS]",
@@ -13033,7 +15414,38 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":510,
+                "arg2":507,
+                "label":"has-property"
+            },
+            {
+                "arg1":509,
+                "arg2":508,
+                "label":"in-context"
+            },
+            {
+                "arg1":510,
+                "arg2":509,
+                "label":"domain"
+            },
+            {
+                "arg1":504,
+                "arg2":506,
+                "label":"domain"
+            },
+            {
+                "arg1":506,
+                "arg2":505,
+                "label":"in-context"
+            },
+            {
+                "arg1":510,
+                "arg2":504,
+                "label":"in-place"
+            }
+        ],
         "text":"A recent study reported that the 82.1% of COVID-19 cases displayed low circulating lymphocyte counts",
         "tokens":[
             "[CLS]",
@@ -13241,7 +15653,38 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":515,
+                "arg2":514,
+                "label":"in-context"
+            },
+            {
+                "arg1":513,
+                "arg2":512,
+                "label":"in-context"
+            },
+            {
+                "arg1":513,
+                "arg2":515,
+                "label":"target"
+            },
+            {
+                "arg1":513,
+                "arg2":517,
+                "label":"causes"
+            },
+            {
+                "arg1":517,
+                "arg2":516,
+                "label":"in-context"
+            },
+            {
+                "arg1":513,
+                "arg2":511,
+                "label":"has-property"
+            }
+        ],
         "text":"Through epidemiological investigation, we observed a typical asymptomatic transmission to the cohabiting family members, which even caused severe COVID-19 pneumonia",
         "tokens":[
             "[CLS]",
@@ -13620,7 +16063,63 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":527,
+                "arg2":526,
+                "label":"domain"
+            },
+            {
+                "arg1":527,
+                "arg2":525,
+                "label":"has-property"
+            },
+            {
+                "arg1":528,
+                "arg2":530,
+                "label":"domain"
+            },
+            {
+                "arg1":530,
+                "arg2":529,
+                "label":"in-context"
+            },
+            {
+                "arg1":528,
+                "arg2":527,
+                "label":"has-property"
+            },
+            {
+                "arg1":519,
+                "arg2":518,
+                "label":"is-a"
+            },
+            {
+                "arg1":520,
+                "arg2":518,
+                "label":"is-a"
+            },
+            {
+                "arg1":521,
+                "arg2":518,
+                "label":"is-a"
+            },
+            {
+                "arg1":522,
+                "arg2":518,
+                "label":"is-a"
+            },
+            {
+                "arg1":523,
+                "arg2":518,
+                "label":"is-a"
+            },
+            {
+                "arg1":524,
+                "arg2":518,
+                "label":"is-a"
+            }
+        ],
         "text":"Other symptoms included shortness of breath, myalgia or arthralgia, sore throat, nasal symptoms and diarrhea ( Blood routine showed that decreased lymphocyte count was present in 38.1% of the COVID-19 patients",
         "tokens":[
             "[CLS]",
@@ -14015,7 +16514,83 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":534,
+                "arg2":532,
+                "label":"in-context"
+            },
+            {
+                "arg1":531,
+                "arg2":534,
+                "label":"domain"
+            },
+            {
+                "arg1":534,
+                "arg2":533,
+                "label":"in-context"
+            },
+            {
+                "arg1":535,
+                "arg2":531,
+                "label":"target"
+            },
+            {
+                "arg1":535,
+                "arg2":537,
+                "label":"entails"
+            },
+            {
+                "arg1":537,
+                "arg2":536,
+                "label":"subject"
+            },
+            {
+                "arg1":537,
+                "arg2":539,
+                "label":"target"
+            },
+            {
+                "arg1":539,
+                "arg2":538,
+                "label":"has-property"
+            },
+            {
+                "arg1":535,
+                "arg2":540,
+                "label":"entails"
+            },
+            {
+                "arg1":540,
+                "arg2":536,
+                "label":"subject"
+            },
+            {
+                "arg1":540,
+                "arg2":541,
+                "label":"target"
+            },
+            {
+                "arg1":542,
+                "arg2":543,
+                "label":"target"
+            },
+            {
+                "arg1":543,
+                "arg2":544,
+                "label":"has-property"
+            },
+            {
+                "arg1":540,
+                "arg2":542,
+                "label":"in-context"
+            },
+            {
+                "arg1":535,
+                "arg2":542,
+                "label":"entails"
+            }
+        ],
         "text":"As the number of hospitalised COVID-19 cases continues to increase, hospitals will increasingly need to ration limited resources and improve clinical pathways to effectively prioritise patients with greatest clinical need",
         "tokens":[
             "[CLS]",
@@ -14461,7 +17036,93 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":546,
+                "arg2":545,
+                "label":"is-a"
+            },
+            {
+                "arg1":547,
+                "arg2":546,
+                "label":"subject"
+            },
+            {
+                "arg1":549,
+                "arg2":548,
+                "label":"in-context"
+            },
+            {
+                "arg1":547,
+                "arg2":549,
+                "label":"target"
+            },
+            {
+                "arg1":547,
+                "arg2":561,
+                "label":"has-property"
+            },
+            {
+                "arg1":561,
+                "arg2":558,
+                "label":"in-context"
+            },
+            {
+                "arg1":561,
+                "arg2":559,
+                "label":"in-context"
+            },
+            {
+                "arg1":552,
+                "arg2":551,
+                "label":"in-context"
+            },
+            {
+                "arg1":554,
+                "arg2":553,
+                "label":"in-context"
+            },
+            {
+                "arg1":552,
+                "arg2":554,
+                "label":"target"
+            },
+            {
+                "arg1":556,
+                "arg2":555,
+                "label":"target"
+            },
+            {
+                "arg1":550,
+                "arg2":546,
+                "label":"subject"
+            },
+            {
+                "arg1":550,
+                "arg2":552,
+                "label":"in-context"
+            },
+            {
+                "arg1":550,
+                "arg2":556,
+                "label":"in-context"
+            },
+            {
+                "arg1":550,
+                "arg2":561,
+                "label":"has-property"
+            },
+            {
+                "arg1":561,
+                "arg2":560,
+                "label":"domain"
+            },
+            {
+                "arg1":550,
+                "arg2":557,
+                "label":"has-property"
+            }
+        ],
         "text":"While RT-PCR-based methods have been widely used in COVID-19 diagnosis, their application in accurate diagnosis of viral infection and epidemic control is severely hampered by their laborious and time-consuming sample processing steps",
         "tokens":[
             "[CLS]",
@@ -14753,7 +17414,53 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":566,
+                "arg2":565,
+                "label":"in-context"
+            },
+            {
+                "arg1":566,
+                "arg2":564,
+                "label":"has-property"
+            },
+            {
+                "arg1":568,
+                "arg2":567,
+                "label":"in-context"
+            },
+            {
+                "arg1":568,
+                "arg2":571,
+                "label":"target"
+            },
+            {
+                "arg1":571,
+                "arg2":570,
+                "label":"in-context"
+            },
+            {
+                "arg1":571,
+                "arg2":569,
+                "label":"in-context"
+            },
+            {
+                "arg1":566,
+                "arg2":568,
+                "label":"in-context"
+            },
+            {
+                "arg1":562,
+                "arg2":566,
+                "label":"has-property"
+            },
+            {
+                "arg1":563,
+                "arg2":566,
+                "label":"has-property"
+            }
+        ],
         "text":"Importantly, we identified N8R and NLR as powerful prognostic factors for early identification of severe COVID-19 cases",
         "tokens":[
             "[CLS]",
@@ -15076,7 +17783,68 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":572,
+                "arg2":573,
+                "label":"has-property"
+            },
+            {
+                "arg1":575,
+                "arg2":574,
+                "label":"in-context"
+            },
+            {
+                "arg1":577,
+                "arg2":575,
+                "label":"subject"
+            },
+            {
+                "arg1":577,
+                "arg2":576,
+                "label":"in-context"
+            },
+            {
+                "arg1":577,
+                "arg2":579,
+                "label":"target"
+            },
+            {
+                "arg1":577,
+                "arg2":578,
+                "label":"in-context"
+            },
+            {
+                "arg1":577,
+                "arg2":580,
+                "label":"in-time"
+            },
+            {
+                "arg1":580,
+                "arg2":581,
+                "label":"domain"
+            },
+            {
+                "arg1":583,
+                "arg2":582,
+                "label":"in-context"
+            },
+            {
+                "arg1":583,
+                "arg2":584,
+                "label":"has-property"
+            },
+            {
+                "arg1":577,
+                "arg2":573,
+                "label":"entails"
+            },
+            {
+                "arg1":583,
+                "arg2":573,
+                "label":"entails"
+            }
+        ],
         "text":"This is critical since COVID-19 infection can rapidly progress from hospital admission to ARDS in as few as 2 days, and COVID-19 infection can be fatal",
         "tokens":[
             "[CLS]",
@@ -15282,7 +18050,38 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":585,
+                "arg2":586,
+                "label":"subject"
+            },
+            {
+                "arg1":587,
+                "arg2":586,
+                "label":"is-a"
+            },
+            {
+                "arg1":588,
+                "arg2":586,
+                "label":"is-a"
+            },
+            {
+                "arg1":589,
+                "arg2":586,
+                "label":"is-a"
+            },
+            {
+                "arg1":591,
+                "arg2":590,
+                "label":"in-context"
+            },
+            {
+                "arg1":585,
+                "arg2":591,
+                "label":"in-context"
+            }
+        ],
         "text":"Consistent with this report, we here also found that the secretion of cytokines including TNF-\u03b1, IL-6 and IL-10 was increased in COVID-19 patients",
         "tokens":[
             "[CLS]",
@@ -15444,7 +18243,23 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":592,
+                "arg2":593,
+                "label":"in-context"
+            },
+            {
+                "arg1":592,
+                "arg2":594,
+                "label":"has-property"
+            },
+            {
+                "arg1":592,
+                "arg2":595,
+                "label":"in-place"
+            }
+        ],
         "text":"The signal corresponding to ubiquitin was elevated in both wild type and TRIM25 KO cells",
         "tokens":[
             "[CLS]",
@@ -15574,7 +18389,23 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":597,
+                "arg2":596,
+                "label":"subject"
+            },
+            {
+                "arg1":597,
+                "arg2":598,
+                "label":"target"
+            },
+            {
+                "arg1":597,
+                "arg2":599,
+                "label":"same-as"
+            }
+        ],
         "text":"Patients who required ICU care just presented 8.65%",
         "tokens":[
             "[CLS]",
@@ -15733,7 +18564,23 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":601,
+                "arg2":600,
+                "label":"subject"
+            },
+            {
+                "arg1":601,
+                "arg2":602,
+                "label":"target"
+            },
+            {
+                "arg1":601,
+                "arg2":603,
+                "label":"in-place"
+            }
+        ],
         "text":"Previous studies had shown that SARS-CoV 3a protein can up regulate the expression of fibrinogen in lung epithelial cells",
         "tokens":[
             "[CLS]",
@@ -16003,7 +18850,38 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":605,
+                "arg2":606,
+                "label":"subject"
+            },
+            {
+                "arg1":605,
+                "arg2":604,
+                "label":"target"
+            },
+            {
+                "arg1":605,
+                "arg2":607,
+                "label":"in-place"
+            },
+            {
+                "arg1":605,
+                "arg2":608,
+                "label":"in-place"
+            },
+            {
+                "arg1":605,
+                "arg2":609,
+                "label":"in-time"
+            },
+            {
+                "arg1":605,
+                "arg2":610,
+                "label":"in-context"
+            }
+        ],
         "text":"Despite clinical recovery, SARS-CoV-2 RNA remained detectable by real time RT-20 PCR in throat and rectal swabs until day 11 and 18 of hospitalization, respectively",
         "tokens":[
             "[CLS]",
@@ -16206,7 +19084,48 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":611,
+                "arg2":613,
+                "label":"is-a"
+            },
+            {
+                "arg1":612,
+                "arg2":613,
+                "label":"is-a"
+            },
+            {
+                "arg1":612,
+                "arg2":614,
+                "label":"has-property"
+            },
+            {
+                "arg1":611,
+                "arg2":614,
+                "label":"has-property"
+            },
+            {
+                "arg1":615,
+                "arg2":612,
+                "label":"subject"
+            },
+            {
+                "arg1":615,
+                "arg2":611,
+                "label":"subject"
+            },
+            {
+                "arg1":615,
+                "arg2":616,
+                "label":"target"
+            },
+            {
+                "arg1":614,
+                "arg2":615,
+                "label":"in-context"
+            }
+        ],
         "text":"The SEIR-QD and SEIR-PO models are suitable for modeling COVID-19 epidemics",
         "tokens":[
             "[CLS]",
@@ -16548,7 +19467,58 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":617,
+                "arg2":618,
+                "label":"in-context"
+            },
+            {
+                "arg1":621,
+                "arg2":622,
+                "label":"target"
+            },
+            {
+                "arg1":621,
+                "arg2":617,
+                "label":"subject"
+            },
+            {
+                "arg1":620,
+                "arg2":621,
+                "label":"domain"
+            },
+            {
+                "arg1":620,
+                "arg2":619,
+                "label":"has-property"
+            },
+            {
+                "arg1":619,
+                "arg2":623,
+                "label":"in-context"
+            },
+            {
+                "arg1":627,
+                "arg2":624,
+                "label":"subject"
+            },
+            {
+                "arg1":626,
+                "arg2":627,
+                "label":"domain"
+            },
+            {
+                "arg1":626,
+                "arg2":625,
+                "label":"has-property"
+            },
+            {
+                "arg1":625,
+                "arg2":628,
+                "label":"in-context"
+            }
+        ],
         "text":"People with blood group A have a significantly higher risk for acquiring COVID-19 compared with non-A blood groups, whereas blood group O has a significantly lower risk for the infection compared with non-O blood groups",
         "tokens":[
             "[CLS]",
@@ -16783,7 +19753,38 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":630,
+                "arg2":629,
+                "label":"target"
+            },
+            {
+                "arg1":633,
+                "arg2":632,
+                "label":"target"
+            },
+            {
+                "arg1":633,
+                "arg2":631,
+                "label":"in-time"
+            },
+            {
+                "arg1":633,
+                "arg2":630,
+                "label":"in-time"
+            },
+            {
+                "arg1":635,
+                "arg2":634,
+                "label":"in-context"
+            },
+            {
+                "arg1":630,
+                "arg2":635,
+                "label":"entails"
+            }
+        ],
         "text":"Conversely, school closures may be implemented earlier in COVID-19 outbreaks, which may lead to greater levels of prevented cases",
         "tokens":[
             "[CLS]",
@@ -17018,7 +20019,43 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":640,
+                "arg2":639,
+                "label":"in-context"
+            },
+            {
+                "arg1":636,
+                "arg2":637,
+                "label":"domain"
+            },
+            {
+                "arg1":638,
+                "arg2":636,
+                "label":"subject"
+            },
+            {
+                "arg1":640,
+                "arg2":641,
+                "label":"has-property"
+            },
+            {
+                "arg1":638,
+                "arg2":640,
+                "label":"target"
+            },
+            {
+                "arg1":643,
+                "arg2":642,
+                "label":"target"
+            },
+            {
+                "arg1":641,
+                "arg2":643,
+                "label":"in-context"
+            }
+        ],
         "text":"Approximately 20% of allied health workers believed that the flu vaccine is sufficient for COVID-19 prevention",
         "tokens":[
             "[CLS]",
@@ -17221,7 +20258,43 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":645,
+                "arg2":646,
+                "label":"in-context"
+            },
+            {
+                "arg1":645,
+                "arg2":647,
+                "label":"in-context"
+            },
+            {
+                "arg1":648,
+                "arg2":644,
+                "label":"subject"
+            },
+            {
+                "arg1":647,
+                "arg2":648,
+                "label":"in-context"
+            },
+            {
+                "arg1":649,
+                "arg2":645,
+                "label":"subject"
+            },
+            {
+                "arg1":649,
+                "arg2":650,
+                "label":"target"
+            },
+            {
+                "arg1":649,
+                "arg2":644,
+                "label":"target"
+            }
+        ],
         "text":"The COVID-19 spread even shows that persons without any symptoms or clinically negative in infection can still spread it to others",
         "tokens":[
             "[CLS]",
@@ -17565,7 +20638,73 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":652,
+                "arg2":651,
+                "label":"in-context"
+            },
+            {
+                "arg1":652,
+                "arg2":653,
+                "label":"subject"
+            },
+            {
+                "arg1":656,
+                "arg2":655,
+                "label":"in-place"
+            },
+            {
+                "arg1":658,
+                "arg2":657,
+                "label":"in-context"
+            },
+            {
+                "arg1":658,
+                "arg2":652,
+                "label":"is-a"
+            },
+            {
+                "arg1":656,
+                "arg2":652,
+                "label":"is-a"
+            },
+            {
+                "arg1":656,
+                "arg2":654,
+                "label":"in-context"
+            },
+            {
+                "arg1":659,
+                "arg2":653,
+                "label":"subject"
+            },
+            {
+                "arg1":663,
+                "arg2":662,
+                "label":"in-context"
+            },
+            {
+                "arg1":661,
+                "arg2":663,
+                "label":"target"
+            },
+            {
+                "arg1":661,
+                "arg2":664,
+                "label":"target"
+            },
+            {
+                "arg1":661,
+                "arg2":660,
+                "label":"in-context"
+            },
+            {
+                "arg1":661,
+                "arg2":659,
+                "label":"causes"
+            }
+        ],
         "text":"It is believed that the primary transmission mode of COVID-19 is through large respiratory droplets and close contact, although there is limited data that indicates that it may also spread through indirect contact with contaminated environments and aerosols",
         "tokens":[
             "[CLS]",
@@ -17810,7 +20949,48 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":668,
+                "arg2":671,
+                "label":"subject"
+            },
+            {
+                "arg1":668,
+                "arg2":667,
+                "label":"target"
+            },
+            {
+                "arg1":668,
+                "arg2":666,
+                "label":"target"
+            },
+            {
+                "arg1":668,
+                "arg2":665,
+                "label":"target"
+            },
+            {
+                "arg1":669,
+                "arg2":670,
+                "label":"has-part"
+            },
+            {
+                "arg1":667,
+                "arg2":670,
+                "label":"in-place"
+            },
+            {
+                "arg1":666,
+                "arg2":670,
+                "label":"in-place"
+            },
+            {
+                "arg1":665,
+                "arg2":670,
+                "label":"in-place"
+            }
+        ],
         "text":"Extensive mutations, insertion and deletion were discovered in COVID-19 strain using the comparative sequencing",
         "tokens":[
             "[CLS]",
@@ -18052,7 +21232,58 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":673,
+                "arg2":672,
+                "label":"domain"
+            },
+            {
+                "arg1":674,
+                "arg2":673,
+                "label":"target"
+            },
+            {
+                "arg1":676,
+                "arg2":675,
+                "label":"in-context"
+            },
+            {
+                "arg1":674,
+                "arg2":676,
+                "label":"in-place"
+            },
+            {
+                "arg1":677,
+                "arg2":673,
+                "label":"in-context"
+            },
+            {
+                "arg1":680,
+                "arg2":678,
+                "label":"in-context"
+            },
+            {
+                "arg1":680,
+                "arg2":679,
+                "label":"in-context"
+            },
+            {
+                "arg1":677,
+                "arg2":680,
+                "label":"arg"
+            },
+            {
+                "arg1":676,
+                "arg2":677,
+                "label":"has-property"
+            },
+            {
+                "arg1":677,
+                "arg2":673,
+                "label":"domain"
+            }
+        ],
         "text":"Total T cell number was significantly decreased in COVID-19 patients, but no significant difference was observed between mild and severe patients",
         "tokens":[
             "[CLS]",
@@ -18328,7 +21559,58 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":681,
+                "arg2":682,
+                "label":"subject"
+            },
+            {
+                "arg1":684,
+                "arg2":683,
+                "label":"in-place"
+            },
+            {
+                "arg1":683,
+                "arg2":682,
+                "label":"in-context"
+            },
+            {
+                "arg1":681,
+                "arg2":684,
+                "label":"target"
+            },
+            {
+                "arg1":681,
+                "arg2":688,
+                "label":"has-property"
+            },
+            {
+                "arg1":688,
+                "arg2":689,
+                "label":"in-place"
+            },
+            {
+                "arg1":685,
+                "arg2":686,
+                "label":"subject"
+            },
+            {
+                "arg1":685,
+                "arg2":683,
+                "label":"in-place"
+            },
+            {
+                "arg1":683,
+                "arg2":687,
+                "label":"is-a"
+            },
+            {
+                "arg1":685,
+                "arg2":688,
+                "label":"has-property"
+            }
+        ],
         "text":"The further impact of COVID-19 on patients' kidney function, especially the incidence of chronic kidney disease in these patients should be the focus of future research",
         "tokens":[
             "[CLS]",
@@ -18601,7 +21883,58 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":691,
+                "arg2":690,
+                "label":"in-context"
+            },
+            {
+                "arg1":692,
+                "arg2":691,
+                "label":"subject"
+            },
+            {
+                "arg1":692,
+                "arg2":691,
+                "label":"target"
+            },
+            {
+                "arg1":694,
+                "arg2":693,
+                "label":"in-context"
+            },
+            {
+                "arg1":692,
+                "arg2":694,
+                "label":"in-context"
+            },
+            {
+                "arg1":697,
+                "arg2":698,
+                "label":"in-context"
+            },
+            {
+                "arg1":695,
+                "arg2":691,
+                "label":"subject"
+            },
+            {
+                "arg1":695,
+                "arg2":697,
+                "label":"in-place"
+            },
+            {
+                "arg1":695,
+                "arg2":699,
+                "label":"in-place"
+            },
+            {
+                "arg1":695,
+                "arg2":696,
+                "label":"in-place"
+            }
+        ],
         "text":"The COVID-19 virus is able to establish between human-to-human transmission and is currently spreading from Wuhan to many nearby 268 cities and countries",
         "tokens":[
             "[CLS]",
@@ -18731,7 +22064,18 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":700,
+                "arg2":701,
+                "label":"domain"
+            },
+            {
+                "arg1":702,
+                "arg2":700,
+                "label":"has-property"
+            }
+        ],
         "text":"A new study revealed that the reproductive number of COVID-19 is up to 3.28",
         "tokens":[
             "[CLS]",
@@ -18932,7 +22276,38 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":704,
+                "arg2":703,
+                "label":"subject"
+            },
+            {
+                "arg1":704,
+                "arg2":705,
+                "label":"has-property"
+            },
+            {
+                "arg1":708,
+                "arg2":709,
+                "label":"target"
+            },
+            {
+                "arg1":708,
+                "arg2":706,
+                "label":"target"
+            },
+            {
+                "arg1":708,
+                "arg2":707,
+                "label":"in-time"
+            },
+            {
+                "arg1":709,
+                "arg2":703,
+                "label":"subject"
+            }
+        ],
         "text":"The CoViD-19 outbreak has become increasingly severe, and no drugs so far have proved capable of stemming the viral growth",
         "tokens":[
             "[CLS]",
@@ -19112,7 +22487,33 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":711,
+                "arg2":710,
+                "label":"subject"
+            },
+            {
+                "arg1":714,
+                "arg2":713,
+                "label":"in-context"
+            },
+            {
+                "arg1":714,
+                "arg2":715,
+                "label":"in-time"
+            },
+            {
+                "arg1":711,
+                "arg2":712,
+                "label":"has-property"
+            },
+            {
+                "arg1":712,
+                "arg2":714,
+                "label":"arg"
+            }
+        ],
         "text":"Therefore, the increase of COVID-19 mortality may also be related to the lower humidity in winter",
         "tokens":[
             "[CLS]",
@@ -19385,7 +22786,63 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":717,
+                "arg2":716,
+                "label":"in-context"
+            },
+            {
+                "arg1":718,
+                "arg2":719,
+                "label":"arg"
+            },
+            {
+                "arg1":717,
+                "arg2":720,
+                "label":"in-context"
+            },
+            {
+                "arg1":717,
+                "arg2":718,
+                "label":"has-property"
+            },
+            {
+                "arg1":721,
+                "arg2":722,
+                "label":"in-context"
+            },
+            {
+                "arg1":721,
+                "arg2":723,
+                "label":"has-property"
+            },
+            {
+                "arg1":723,
+                "arg2":724,
+                "label":"in-context"
+            },
+            {
+                "arg1":724,
+                "arg2":725,
+                "label":"in-place"
+            },
+            {
+                "arg1":717,
+                "arg2":721,
+                "label":"entails"
+            },
+            {
+                "arg1":718,
+                "arg2":717,
+                "label":"domain"
+            },
+            {
+                "arg1":724,
+                "arg2":721,
+                "label":"domain"
+            }
+        ],
         "text":"If asymptomatic infections are more persistent than symptomatic ones, the mean generation interval for COVID-19 could be longer than estimated from symptomatic cases alone",
         "tokens":[
             "[CLS]",
@@ -19648,7 +23105,63 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":726,
+                "arg2":729,
+                "label":"target"
+            },
+            {
+                "arg1":727,
+                "arg2":729,
+                "label":"target"
+            },
+            {
+                "arg1":728,
+                "arg2":729,
+                "label":"target"
+            },
+            {
+                "arg1":731,
+                "arg2":730,
+                "label":"has-property"
+            },
+            {
+                "arg1":732,
+                "arg2":734,
+                "label":"target"
+            },
+            {
+                "arg1":733,
+                "arg2":734,
+                "label":"target"
+            },
+            {
+                "arg1":731,
+                "arg2":732,
+                "label":"in-context"
+            },
+            {
+                "arg1":731,
+                "arg2":733,
+                "label":"in-context"
+            },
+            {
+                "arg1":726,
+                "arg2":731,
+                "label":"causes"
+            },
+            {
+                "arg1":727,
+                "arg2":731,
+                "label":"causes"
+            },
+            {
+                "arg1":728,
+                "arg2":731,
+                "label":"causes"
+            }
+        ],
         "text":"The protection, maintenance or promotion of lymphocyte levels might have a good effect on the prevention and treatment of COVID-19",
         "tokens":[
             "[CLS]",
@@ -19972,7 +23485,68 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":736,
+                "arg2":735,
+                "label":"target"
+            },
+            {
+                "arg1":738,
+                "arg2":737,
+                "label":"in-context"
+            },
+            {
+                "arg1":736,
+                "arg2":738,
+                "label":"in-context"
+            },
+            {
+                "arg1":736,
+                "arg2":739,
+                "label":"has-property"
+            },
+            {
+                "arg1":741,
+                "arg2":740,
+                "label":"has-property"
+            },
+            {
+                "arg1":743,
+                "arg2":742,
+                "label":"subject"
+            },
+            {
+                "arg1":741,
+                "arg2":743,
+                "label":"target"
+            },
+            {
+                "arg1":745,
+                "arg2":747,
+                "label":"domain"
+            },
+            {
+                "arg1":744,
+                "arg2":745,
+                "label":"target"
+            },
+            {
+                "arg1":736,
+                "arg2":741,
+                "label":"causes"
+            },
+            {
+                "arg1":741,
+                "arg2":744,
+                "label":"causes"
+            },
+            {
+                "arg1":747,
+                "arg2":746,
+                "label":"in-context"
+            }
+        ],
         "text":"Therefore, temperature screening in the high-risk 56 population is important for early identification of COVID-19 infection and thereby reducing the risk of cross infection",
         "tokens":[
             "[CLS]",
@@ -20308,7 +23882,58 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":756,
+                "arg2":757,
+                "label":"target"
+            },
+            {
+                "arg1":752,
+                "arg2":756,
+                "label":"in-context"
+            },
+            {
+                "arg1":752,
+                "arg2":753,
+                "label":"target"
+            },
+            {
+                "arg1":753,
+                "arg2":754,
+                "label":"in-place"
+            },
+            {
+                "arg1":749,
+                "arg2":748,
+                "label":"subject"
+            },
+            {
+                "arg1":749,
+                "arg2":752,
+                "label":"target"
+            },
+            {
+                "arg1":752,
+                "arg2":750,
+                "label":"subject"
+            },
+            {
+                "arg1":752,
+                "arg2":751,
+                "label":"subject"
+            },
+            {
+                "arg1":757,
+                "arg2":758,
+                "label":"same-as"
+            },
+            {
+                "arg1":756,
+                "arg2":755,
+                "label":"has-property"
+            }
+        ],
         "text":"Researchers have found that the new SARS-CoV-2 and SARS coronaviruses invade human cells in target tissues in a similar manner via high-affinity binding to angiotensin-converting enzyme 2 (ACE2)",
         "tokens":[
             "[CLS]",
@@ -20603,7 +24228,53 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":762,
+                "arg2":761,
+                "label":"target"
+            },
+            {
+                "arg1":760,
+                "arg2":759,
+                "label":"has-property"
+            },
+            {
+                "arg1":761,
+                "arg2":760,
+                "label":"is-a"
+            },
+            {
+                "arg1":762,
+                "arg2":763,
+                "label":"in-place"
+            },
+            {
+                "arg1":763,
+                "arg2":764,
+                "label":"part-of"
+            },
+            {
+                "arg1":762,
+                "arg2":765,
+                "label":"in-time"
+            },
+            {
+                "arg1":767,
+                "arg2":766,
+                "label":"has-property"
+            },
+            {
+                "arg1":767,
+                "arg2":768,
+                "label":"in-place"
+            },
+            {
+                "arg1":761,
+                "arg2":767,
+                "label":"is-a"
+            }
+        ],
         "text":"Novel coronaviruses (COVID-19) , which was found in Wuhan, China in December 2019 presents an acute public health threat to the whole world",
         "tokens":[
             "[CLS]",
@@ -20856,7 +24527,48 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":773,
+                "arg2":772,
+                "label":"in-context"
+            },
+            {
+                "arg1":769,
+                "arg2":770,
+                "label":"subject"
+            },
+            {
+                "arg1":775,
+                "arg2":774,
+                "label":"in-context"
+            },
+            {
+                "arg1":771,
+                "arg2":773,
+                "label":"in-context"
+            },
+            {
+                "arg1":771,
+                "arg2":775,
+                "label":"in-context"
+            },
+            {
+                "arg1":769,
+                "arg2":776,
+                "label":"has-property"
+            },
+            {
+                "arg1":776,
+                "arg2":777,
+                "label":"same-as"
+            },
+            {
+                "arg1":769,
+                "arg2":771,
+                "label":"in-place"
+            }
+        ],
         "text":"The prevalence of COVID-19 in cases with CT-confirmed pneumonia sent for 2019-nCoV testing was 23.9% (21/88)",
         "tokens":[
             "[CLS]",
@@ -20989,7 +24701,23 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":778,
+                "arg2":779,
+                "label":"causes"
+            },
+            {
+                "arg1":780,
+                "arg2":781,
+                "label":"arg"
+            },
+            {
+                "arg1":779,
+                "arg2":780,
+                "label":"has-property"
+            }
+        ],
         "text":"This yields an R0 above 2, comparable to current estimates for COVID-19",
         "tokens":[
             "[CLS]",
@@ -21261,7 +24989,53 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":784,
+                "arg2":783,
+                "label":"in-time"
+            },
+            {
+                "arg1":782,
+                "arg2":784,
+                "label":"in-place"
+            },
+            {
+                "arg1":787,
+                "arg2":788,
+                "label":"in-context"
+            },
+            {
+                "arg1":785,
+                "arg2":786,
+                "label":"target"
+            },
+            {
+                "arg1":782,
+                "arg2":785,
+                "label":"entails"
+            },
+            {
+                "arg1":785,
+                "arg2":787,
+                "label":"has-property"
+            },
+            {
+                "arg1":785,
+                "arg2":789,
+                "label":"has-property"
+            },
+            {
+                "arg1":785,
+                "arg2":790,
+                "label":"has-property"
+            },
+            {
+                "arg1":785,
+                "arg2":791,
+                "label":"has-property"
+            }
+        ],
         "text":"Clinical studies conducted on hospitalised cases show that the onset of COVID-19 is associated with symptoms commonly associated with viral pneumonia, most commonly fever, cough/sore throat and myalgia/fatigue",
         "tokens":[
             "[CLS]",
@@ -21498,7 +25272,38 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":796,
+                "arg2":795,
+                "label":"subject"
+            },
+            {
+                "arg1":794,
+                "arg2":793,
+                "label":"has-property"
+            },
+            {
+                "arg1":794,
+                "arg2":792,
+                "label":"has-property"
+            },
+            {
+                "arg1":794,
+                "arg2":796,
+                "label":"in-context"
+            },
+            {
+                "arg1":798,
+                "arg2":797,
+                "label":"arg"
+            },
+            {
+                "arg1":794,
+                "arg2":798,
+                "label":"same-as"
+            }
+        ],
         "text":"We estimated the mean incubation period of COVID-19 infections to be 4.9 days, which was calculated based on a big sample size with valid data",
         "tokens":[
             "[CLS]",
@@ -21674,7 +25479,33 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":801,
+                "arg2":803,
+                "label":"target"
+            },
+            {
+                "arg1":801,
+                "arg2":800,
+                "label":"subject"
+            },
+            {
+                "arg1":801,
+                "arg2":799,
+                "label":"subject"
+            },
+            {
+                "arg1":800,
+                "arg2":799,
+                "label":"is-a"
+            },
+            {
+                "arg1":803,
+                "arg2":802,
+                "label":"in-context"
+            }
+        ],
         "text":"Social distancing, including school closures, can limit COVID-19 cases",
         "tokens":[
             "[CLS]",
@@ -21973,7 +25804,58 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":808,
+                "arg2":807,
+                "label":"has-property"
+            },
+            {
+                "arg1":806,
+                "arg2":808,
+                "label":"target"
+            },
+            {
+                "arg1":804,
+                "arg2":805,
+                "label":"target"
+            },
+            {
+                "arg1":805,
+                "arg2":808,
+                "label":"target"
+            },
+            {
+                "arg1":814,
+                "arg2":815,
+                "label":"is-a"
+            },
+            {
+                "arg1":813,
+                "arg2":814,
+                "label":"target"
+            },
+            {
+                "arg1":812,
+                "arg2":813,
+                "label":"in-context"
+            },
+            {
+                "arg1":810,
+                "arg2":809,
+                "label":"target"
+            },
+            {
+                "arg1":810,
+                "arg2":811,
+                "label":"in-context"
+            },
+            {
+                "arg1":810,
+                "arg2":812,
+                "label":"entails"
+            }
+        ],
         "text":"Preventing recognition or blocking the occurrence of inflammatory action, new drugs development on immune regulation, might be new breakthroughs in the control of COVID-19 pneumonia",
         "tokens":[
             "[CLS]",
@@ -22217,7 +26099,38 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":817,
+                "arg2":816,
+                "label":"is-a"
+            },
+            {
+                "arg1":818,
+                "arg2":816,
+                "label":"in-context"
+            },
+            {
+                "arg1":820,
+                "arg2":819,
+                "label":"subject"
+            },
+            {
+                "arg1":820,
+                "arg2":822,
+                "label":"in-time"
+            },
+            {
+                "arg1":820,
+                "arg2":821,
+                "label":"in-place"
+            },
+            {
+                "arg1":820,
+                "arg2":818,
+                "label":"causes"
+            }
+        ],
         "text":"A novel coronavirus disease (COVID-19) outbreak due to SARS-CoV-2 infection occurred in China in late-December 2019",
         "tokens":[
             "[CLS]",
@@ -22524,7 +26437,48 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":826,
+                "arg2":825,
+                "label":"has-property"
+            },
+            {
+                "arg1":823,
+                "arg2":826,
+                "label":"is-a"
+            },
+            {
+                "arg1":823,
+                "arg2":824,
+                "label":"in-context"
+            },
+            {
+                "arg1":828,
+                "arg2":827,
+                "label":"same-as"
+            },
+            {
+                "arg1":829,
+                "arg2":828,
+                "label":"in-context"
+            },
+            {
+                "arg1":829,
+                "arg2":830,
+                "label":"target"
+            },
+            {
+                "arg1":829,
+                "arg2":831,
+                "label":"target"
+            },
+            {
+                "arg1":829,
+                "arg2":826,
+                "label":"causes"
+            }
+        ],
         "text":"The confirmed diagnosis of COVID-19 was defined as a positive result by using real-time reverse-transcriptase polymerase-chain-reaction (RT-PCR) detection for routine nasal and pharyngeal swab specimens",
         "tokens":[
             "[CLS]",
@@ -22716,7 +26670,28 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":835,
+                "arg2":836,
+                "label":"in-context"
+            },
+            {
+                "arg1":835,
+                "arg2":834,
+                "label":"target"
+            },
+            {
+                "arg1":835,
+                "arg2":832,
+                "label":"target"
+            },
+            {
+                "arg1":832,
+                "arg2":833,
+                "label":"target"
+            }
+        ],
         "text":"Isolation of cases and contact tracing has been implemented for COVID-19",
         "tokens":[
             "[CLS]",
@@ -22885,7 +26860,33 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":840,
+                "arg2":839,
+                "label":"in-context"
+            },
+            {
+                "arg1":838,
+                "arg2":837,
+                "label":"in-context"
+            },
+            {
+                "arg1":842,
+                "arg2":841,
+                "label":"has-property"
+            },
+            {
+                "arg1":842,
+                "arg2":840,
+                "label":"has-property"
+            },
+            {
+                "arg1":842,
+                "arg2":838,
+                "label":"has-property"
+            }
+        ],
         "text":"Although both diseases can have similar GGO and septal thickening, rounded morphology, peripheral distribution and fibrous lesion were relatively specific in COVID-19",
         "tokens":[
             "[CLS]",
@@ -23341,7 +27342,73 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":843,
+                "arg2":844,
+                "label":"is-a"
+            },
+            {
+                "arg1":847,
+                "arg2":846,
+                "label":"has-property"
+            },
+            {
+                "arg1":847,
+                "arg2":848,
+                "label":"has-property"
+            },
+            {
+                "arg1":850,
+                "arg2":849,
+                "label":"in-context"
+            },
+            {
+                "arg1":852,
+                "arg2":851,
+                "label":"in-context"
+            },
+            {
+                "arg1":845,
+                "arg2":843,
+                "label":"subject"
+            },
+            {
+                "arg1":845,
+                "arg2":847,
+                "label":"target"
+            },
+            {
+                "arg1":855,
+                "arg2":856,
+                "label":"same-as"
+            },
+            {
+                "arg1":857,
+                "arg2":858,
+                "label":"same-as"
+            },
+            {
+                "arg1":843,
+                "arg2":853,
+                "label":"has-property"
+            },
+            {
+                "arg1":843,
+                "arg2":854,
+                "label":"has-property"
+            },
+            {
+                "arg1":850,
+                "arg2":848,
+                "label":"causes"
+            },
+            {
+                "arg1":852,
+                "arg2":848,
+                "label":"causes"
+            }
+        ],
         "text":"COVID-19 is a beta-coronavirus, presenting as viral pneumonia with high infectiousness through respiratory droplets or direct contact and appears to have greater infectivity and a lower-case fatality rate when compared to severe acute respiratory syndrome (SARS) and Middle Eastern respiratory syndrome(MERS)",
         "tokens":[
             "[CLS]",
@@ -23644,7 +27711,53 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":860,
+                "arg2":859,
+                "label":"subject"
+            },
+            {
+                "arg1":860,
+                "arg2":861,
+                "label":"in-time"
+            },
+            {
+                "arg1":860,
+                "arg2":863,
+                "label":"in-context"
+            },
+            {
+                "arg1":865,
+                "arg2":860,
+                "label":"in-context"
+            },
+            {
+                "arg1":865,
+                "arg2":859,
+                "label":"subject"
+            },
+            {
+                "arg1":867,
+                "arg2":866,
+                "label":"has-property"
+            },
+            {
+                "arg1":865,
+                "arg2":867,
+                "label":"target"
+            },
+            {
+                "arg1":862,
+                "arg2":861,
+                "label":"arg"
+            },
+            {
+                "arg1":859,
+                "arg2":864,
+                "label":"is-a"
+            }
+        ],
         "text":"Usually, COVID-19 has an incubation period of 2-7 days 2 with no obvious 41 symptoms, during which time the virus can spread from infected to uninfected individuals",
         "tokens":[
             "[CLS]",
@@ -24005,7 +28118,68 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":870,
+                "arg2":869,
+                "label":"has-property"
+            },
+            {
+                "arg1":870,
+                "arg2":868,
+                "label":"in-time"
+            },
+            {
+                "arg1":871,
+                "arg2":870,
+                "label":"same-as"
+            },
+            {
+                "arg1":871,
+                "arg2":872,
+                "label":"same-as"
+            },
+            {
+                "arg1":871,
+                "arg2":873,
+                "label":"same-as"
+            },
+            {
+                "arg1":875,
+                "arg2":874,
+                "label":"in-context"
+            },
+            {
+                "arg1":876,
+                "arg2":875,
+                "label":"is-a"
+            },
+            {
+                "arg1":870,
+                "arg2":876,
+                "label":"causes"
+            },
+            {
+                "arg1":880,
+                "arg2":877,
+                "label":"has-property"
+            },
+            {
+                "arg1":879,
+                "arg2":878,
+                "label":"has-property"
+            },
+            {
+                "arg1":880,
+                "arg2":879,
+                "label":"in-context"
+            },
+            {
+                "arg1":876,
+                "arg2":880,
+                "label":"is-a"
+            }
+        ],
         "text":"The 2019 novel coronavirus (2019-nCoV, also called severe acute respiratory syndrome (SARS)-CoV-2) has caused the current outbreak of coronavirus disease (COVID-19), which has emerged as a serious public health concern",
         "tokens":[
             "[CLS]",
@@ -24280,7 +28454,48 @@
                 ]
             }
         },
-        "relations":[],
+        "relations":[
+            {
+                "arg1":882,
+                "arg2":881,
+                "label":"has-property"
+            },
+            {
+                "arg1":882,
+                "arg2":883,
+                "label":"in-context"
+            },
+            {
+                "arg1":886,
+                "arg2":885,
+                "label":"is-a"
+            },
+            {
+                "arg1":884,
+                "arg2":886,
+                "label":"target"
+            },
+            {
+                "arg1":884,
+                "arg2":882,
+                "label":"subject"
+            },
+            {
+                "arg1":889,
+                "arg2":888,
+                "label":"has-property"
+            },
+            {
+                "arg1":887,
+                "arg2":889,
+                "label":"target"
+            },
+            {
+                "arg1":884,
+                "arg2":887,
+                "label":"entails"
+            }
+        ],
         "text":"The transmission characteristics of COVID-19 appear to be similar to those of pandemic influenza and will likely facilitate further global spread",
         "tokens":[
             "[CLS]",

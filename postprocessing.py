@@ -1,35 +1,34 @@
 from data.scripts.anntools import Collection, Sentence, Keyphrase, Relation
-from pathlib import Path
-import time
 import torch
 import utils
+from nltk.corpus import stopwords
+import string
+stop = stopwords.words('spanish')
+stop += stopwords.words('english')
 
+def check_if_stopword(token):
+    return token in stop
+
+def check_if_connector(token):
+    return token in '-+_%'
 
 def check_valid_token(cur_token):
-    return not (cur_token.startswith('##') or cur_token == '[CLS]' or cur_token == '[SEP]')
+    return not (cur_token.startswith('##') or cur_token == '[CLS]' or cur_token == '[SEP]'
+                or check_if_connector(cur_token))
+
+def check_valid_initial_token(cur_token):
+    return check_valid_token(cur_token) and not check_if_stopword(cur_token) and not cur_token in string.punctuation
 
 
 def get_token_at_position(tokens, index):
-    if tokens[index].startswith('##'):
+    if not check_valid_token(tokens[index]):
         return ''
     result = tokens[index]
     i = index + 1
-    while i < len(tokens) and tokens[i].startswith('##'):
+    while i < len(tokens) and (tokens[i].startswith('##') or check_if_connector(tokens[i])):
         result += tokens[i].replace('##', '')
         i += 1
     return result
-
-
-def get_bidirectional_relation_dict(relation_list):
-    relation_dict = {}
-    for index_from, index_to, label in relation_list:
-        # inferencer 1
-        # discarding reflexive relations
-        if index_from < index_to and label >= 1:
-            value = relation_dict.get(index_from, [])
-            value.append(index_to)
-            relation_dict[index_from] = value
-    return relation_dict
 
 
 def check_if_list_wholly_contained(list_a, list_b):
@@ -59,21 +58,6 @@ def discard_entities(sentence):
     for key_remove in to_remove:
         sentence.keyphrases.remove(key_remove)
 
-def check_tuple_in_list(relation_tuple, related_list):
-    idx1, idx2, label = relation_tuple
-    for related_idx1, related_idx2, related_label in related_list:
-        if related_label >= 1 and idx1 == related_idx1 and idx2 == related_idx2:
-            return True
-    return False
-
-def filter_relations_using_related(relation_type_list, related_list):
-    result = []
-    for relation_tuple in relation_type_list:
-        if check_tuple_in_list(relation_tuple, related_list):
-            result.append(relation_tuple)
-    return result
-
-
 def add_relations(sentence, relation_list, token2entity, relation_id2w):
     for token_idx1, token_idx2, label_idx in relation_list:
         relation_label = relation_id2w[label_idx]
@@ -91,65 +75,101 @@ def add_relations(sentence, relation_list, token2entity, relation_id2w):
                     id=destination) is not None:
                 sentence.relations.append(Relation(sentence, origin, destination, relation_label))
 
+def check_if_contiguous_entity(index, entity_id, entity_list, tokens):
+    return index + 1 < len(entity_list)\
+           and ((utils.entity_id2w[entity_list[index + 1]].strip('-BI') == utils.entity_id2w[entity_id].strip('-BI')
+                and utils.entity_id2w[entity_list[index + 1]].startswith('I-'))
+                or not check_valid_token(tokens[index + 1]))
 
-def get_collection(preprocessed_dataset, entity, multiword, sameas, related, relation_type, relations_inv=False):
+def fix_span_list(span_list):
+    if len(span_list) == 0:
+        return span_list
+    result = []
+    last_span = span_list[0]
+    for i in range(1, len(span_list)):
+        last_start, last_end = last_span
+        cur_start, cur_end = span_list[i]
+        if last_end == cur_start:
+            last_span = (last_start, cur_end)
+        else:
+            result.append(last_span)
+            last_span = span_list[i]
+    result.append(last_span)
+    return result
+
+def find_nth_occurrence(text, token, num_occurrence):
+    val = -1
+    for i in range(num_occurrence):
+        val = text.find(token, val + 1)
+    return val
+
+
+def add_all_to_count_token(count_token_dict, token, val):
+    all_substr = [token[i: j] for i in range(len(token)) for j in range(i + 1, len(token) + 1)]
+    for substr in all_substr:
+        count_token_dict[substr] = val
+
+
+def get_collection(preprocessed_dataset, entity, related, relations_inv=False):
     c = Collection()
     global_entity_id = 0
-    for row, entity_list, multiword_list, sameas_list, related_list, relation_type_list in zip(preprocessed_dataset, entity, multiword, sameas, related, relation_type):
-        if isinstance(multiword_list, torch.Tensor):
+    for row, entity_list, related_list in zip(preprocessed_dataset, entity, related):
+        if isinstance(entity_list, torch.Tensor):
             entity_list = entity_list.detach().cpu().numpy()
-            multiword_list = multiword_list.detach().cpu().numpy()
-            sameas_list = sameas_list.detach().cpu().numpy()
             related_list = related_list.detach().cpu().numpy()
-            relation_type_list = relation_type_list.detach().cpu().numpy()
         sentence_text = row['text']
         sentence = Sentence(sentence_text)
         tokens = row['tokens']
-        # print(tokens)
-        # print(entity_list)
-        # print(multiword_list)
-        multiword_dict = get_bidirectional_relation_dict(multiword_list)
-        relation_type_list = filter_relations_using_related(relation_type_list, related_list)
-        # print(multiword_dict)
-        last_pos = 0
         token_index_to_entity_id = {}
-        for index, entity_id in enumerate(entity_list):
+        count_token_dict = {}
+        index = 0
+        while index < len(entity_list):
+            # print(tokens[index])
+            entity_id = entity_list[index]
+            # print(entity_id)
             entity_index_list = []
-            if utils.entity_id2w[entity_id] != 'O' and check_valid_token(tokens[index]):
+            if utils.entity_id2w[entity_id].startswith('B-') and check_valid_initial_token(tokens[index]):
                 cur_token = get_token_at_position(tokens, index)
-                start = last_pos + sentence_text[last_pos:].find(cur_token)
+                # print('found token: %s' % cur_token)
+                # start = last_pos + sentence_text[last_pos:].find(cur_token)
+                count = count_token_dict.get(cur_token, 0)
+                add_all_to_count_token(count_token_dict, cur_token, count + 1)
+                start = find_nth_occurrence(sentence_text, cur_token, count_token_dict[cur_token])
                 end = start + len(cur_token)
                 span_list = [(start, end)]
                 entity_index_list.append(index)
-                # print(cur_token)
-                if index in multiword_dict:
-                    for idx in multiword_dict[index]:
-                        mw_token = get_token_at_position(tokens, idx)
-                        if len(mw_token) > 0:
-                            start = last_pos + sentence_text[last_pos:].find(mw_token)
-                            end = start + len(mw_token)
-                            span_list.append((start, end))
-                            entity_index_list.append(idx)
-                # print(sentence_text[last_pos:])
 
-                keyphrase = Keyphrase(sentence, utils.entity_id2w[entity_id], global_entity_id,
-                                      span_list)
+                while check_if_contiguous_entity(index, entity_id, entity_list, tokens):
+                    index += 1
+                    mw_token = get_token_at_position(tokens, index)
+                    if len(mw_token) > 0:
+                        # print('contiguous entities: %s' % mw_token)
+                        # start = last_pos + sentence_text[last_pos:].find(mw_token)
+                        count = count_token_dict.get(mw_token, 0)
+                        add_all_to_count_token(count_token_dict, mw_token, count + 1)
+                        start = find_nth_occurrence(sentence_text, mw_token, count_token_dict[mw_token])
+                        end = start + len(mw_token)
+                        span_list.append((start, end))
+                        entity_index_list.append(index)
 
+
+                keyphrase = Keyphrase(sentence, utils.entity_id2w[entity_id].strip('-BI'), global_entity_id,
+                                      fix_span_list(span_list))
+
+                # print(keyphrase)
                 for entity_index in entity_index_list:
                     token_index_to_entity_id[entity_index] = global_entity_id
 
                 # print(keyphrase)
                 global_entity_id += 1
                 sentence.keyphrases.append(keyphrase)
-            if tokens[index] != '[CLS]' and tokens[index] != '[SEP]':
-                last_pos += len(tokens[index].replace('##', ''))
+            index += 1
         discard_entities(sentence)
 
-        add_relations(sentence, sameas_list, token_index_to_entity_id, {0: 'NONE', 1: 'same-as'})
         relation_id2w_local = utils.relation_id2w
         if relations_inv:
             relation_id2w_local = utils.relation_inv_id2w
-        add_relations(sentence, relation_type_list, token_index_to_entity_id, relation_id2w_local)
+        add_relations(sentence, related_list, token_index_to_entity_id, relation_id2w_local)
 
         c.sentences.append(sentence)
     return c

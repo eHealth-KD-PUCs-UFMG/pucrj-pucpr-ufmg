@@ -1,7 +1,8 @@
-ENTITIES = ["O", "Concept", "Action", "Predicate", "Reference"]
+ENTITIES = ["O", "B-Concept", "I-Concept", "B-Action", "I-Action", "B-Predicate", "I-Predicate", "B-Reference",
+            "I-Reference"]
 
 RELATIONS = [
-    # "O",
+    "NONE",
     "is-a",
     "part-of",
     "has-property",
@@ -14,10 +15,11 @@ RELATIONS = [
     "target",
     "domain",
     "arg",
+    "same-as"
 ]
 
 RELATIONS_INV = [
-    # "O",
+    "NONE",
     "is-a",
     "part-of",
     "has-property",
