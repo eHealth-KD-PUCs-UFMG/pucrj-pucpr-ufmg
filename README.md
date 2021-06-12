@@ -1,8 +1,14 @@
 # PUCRJ-PUCPR-UFMG
 
-Repository with the system code presented by the **PUCRJ-PUCPR-UFMG** team in the eHealth-KD challenge 2021.
+Repository with the system code presented by the **PUCRJ-PUCPR-UFMG** team in the eHealth Knowledge Discovery 2021.
 
-For more information about the tasks, refer to [eHealth site](https://ehealthkd.github.io/2021) and [eHealth repo](https://github.com/ehealthkd/ehealthkd.github.io).
+For more information about the challenge and the tasks, refer to [eHealth site](https://ehealthkd.github.io/2021) and [eHealth repo](https://github.com/ehealthkd/ehealthkd.github.io).
+
+## Model's Architecture
+
+<img src="ModelArchitecture.png" alt="Model's Architecture"/>
+
+
 
 ## How to cite
 
